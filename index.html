@@ -8,6 +8,8 @@
 
 <!-- SDK Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Bibliothèque Scanner QR Code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
 <style>
 :root {
@@ -249,7 +251,6 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
       <button class="nav-btn" data-page="loyalty">💳 Fidélité</button>
       <button class="nav-btn" data-page="games">🎁 Jeux</button>
       <button class="nav-btn" data-page="profile">👤 Profil</button>
-      <!-- Le bouton Admin sera injecté ici uniquement pour azizmrouch@gmail.com -->
     </nav>
     <main id="mainContent" class="content"></main>
   </div>
@@ -274,6 +275,7 @@ let activePage = "home";
 let eventsList = [];
 let offersList = [];
 let loyaltyData = { visits: 0, qr_token: "" };
+let html5QrCode = null;
 
 const ADMIN_EMAIL = "azizmrouch@gmail.com";
 const $ = id => document.getElementById(id);
@@ -376,7 +378,6 @@ async function loadUserDataAndEnterApp(user) {
   const { data: offs } = await supabaseClient.from('offers').select('*').eq('is_published', true);
   if (offs) offersList = offs;
 
-  // Gérer l'affichage du bouton Admin dans la barre latérale si c'est l'admin
   const sidebarNav = $("sidebarNav");
   const existingAdminBtn = sidebarNav.querySelector('[data-page="admin"]');
   
@@ -401,6 +402,9 @@ async function loadUserDataAndEnterApp(user) {
 }
 
 $("logoutBtn").addEventListener("click", async () => {
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop().catch(() => {});
+  }
   if (supabaseClient) await supabaseClient.auth.signOut();
   $("appScreen").classList.add("hidden");
   $("authScreen").classList.remove("hidden");
@@ -425,7 +429,10 @@ function card(item) {
     </article>`;
 }
 
-function goPage(page) {
+async function goPage(page) {
+  if (page !== "admin" && html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop().catch(() => {});
+  }
   if (page === "admin" && currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
     alert("Accès refusé. Réservé à l'administrateur.");
     return;
@@ -522,22 +529,17 @@ async function renderPage(page) {
       return;
     }
 
-    main.innerHTML = `<div class="notice">Chargement des statistiques...</div>`;
-    
-    const { count: membersCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-    const { count: visitsCount } = await supabaseClient.from('visits').select('*', { count: 'exact', head: true });
-
     main.innerHTML = `
       <div class="section-heading"><h2>⚙️ Dashboard Administrateur</h2></div>
       
       <div class="stat-cards">
         <div class="stat-card">
           <div class="muted">Clients inscrits</div>
-          <div class="stat-number">${membersCount || 0}</div>
+          <div class="stat-number" id="statMembers">-</div>
         </div>
         <div class="stat-card">
           <div class="muted">Total Visites Validées</div>
-          <div class="stat-number">${visitsCount || 0}</div>
+          <div class="stat-number" id="statVisits">-</div>
         </div>
         <div class="stat-card">
           <div class="muted">Objectif Cadeau</div>
@@ -546,27 +548,64 @@ async function renderPage(page) {
       </div>
 
       <div class="scan-box">
-        <h3>🔍 Valider une visite client (Token)</h3>
-        <p class="muted">Entrez le Token ID du membre pour enregistrer sa visite instantanément.</p>
+        <h3>📷 Scanner le QR Code du client</h3>
+        <p class="muted">Utilisez la caméra pour scanner le QR code ou entrez le Token manuellement.</p>
         
-        <input class="field" id="scanInput" placeholder="Ex: e2a1b3c4-..." style="margin-bottom:12px;">
-        <button class="primary full" onclick="searchAndValidateMember()">Rechercher & Valider la visite</button>
+        <div id="reader" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
+        <button class="outline full" id="startScanBtn" onclick="startCameraScan()" style="margin-bottom: 15px;">Démarrer la caméra</button>
+
+        <div style="display: flex; gap: 10px;">
+          <input class="field" id="scanInput" placeholder="Entrez le Token ID ici...">
+          <button class="primary" onclick="searchAndValidateMember($('scanInput').value.trim())">Valider</button>
+        </div>
 
         <div id="scanResult" class="result-card hidden"></div>
       </div>`;
+
+    supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).then(({ count }) => {
+      if ($('statMembers'))$('statMembers').textContent = count || 0;
+    });
+    supabaseClient.from('visits').select('*', { count: 'exact', head: true }).then(({ count }) => {
+      if ($('statVisits'))$('statVisits').textContent = count || 0;
+    });
   }
 }
 
-async function searchAndValidateMember() {
-  const token = $("scanInput").value.trim();
+function startCameraScan() {
+  const btn = $("startScanBtn");
+  btn.textContent = "Caméra active...";
+  btn.disabled = true;
+
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    async (decodedText) => {
+      $("scanInput").value = decodedText;
+      await searchAndValidateMember(decodedText);
+      if (html5QrCode && html5QrCode.isScanning) {
+        await html5QrCode.stop();
+        btn.textContent = "Démarrer la caméra";
+        btn.disabled = false;
+      }
+    },
+    (errorMessage) => {}
+  ).catch(err => {
+    alert("Impossible d'accéder à la caméra : " + err);
+    btn.textContent = "Démarrer la caméra";
+    btn.disabled = false;
+  });
+}
+
+async function searchAndValidateMember(token) {
   const res = $("scanResult");
   if (!token) {
-    alert("Veuillez entrer un Token client.");
+    alert("Veuillez entrer ou scanner un Token client.");
     return;
   }
 
   res.classList.remove("hidden");
-  res.innerHTML = "Recherche en cours...";
+  res.innerHTML = "Validation en cours...";
 
   const { data: card, error } = await supabaseClient
     .from('loyalty_cards')
@@ -575,7 +614,7 @@ async function searchAndValidateMember() {
     .maybeSingle();
 
   if (error || !card) {
-    res.innerHTML = `❌ Membre introuvable. Vérifiez le Token.`;
+    res.innerHTML = `❌ Membre introuvable. Code invalide.`;
     return;
   }
 
@@ -609,7 +648,7 @@ function spinWheel() {
     const gifts = [
       "☕ Un café offert !", 
       "🥐 Une viennoiserie gratuite !", 
-      "🍹 -50% sur votre cocktail !", 
+      "🍹 -50% sur votre addition !", 
       "🎉 Retente ta chance !"
     ];
     const won = gifts[Math.floor(Math.random() * gifts.length)];
