@@ -168,11 +168,11 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
   display: inline-block;
 }
 
-/* ROULETTE / WHEEL DESIGN REALISTE */
+/* DESIGN ROULETTE SVG PARFAITE */
 .wheel-wrapper {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: 290px;
+  height: 290px;
   margin: 20px auto;
 }
 
@@ -183,65 +183,36 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-top: 24px solid #d9534f;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 26px solid #d9534f;
   z-index: 10;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
-.wheel-box {
+.wheel-svg-box {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 6px solid var(--terracotta-dark);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.18);
   transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
-.wheel-segment {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  transform-origin: 100% 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 13px;
-  color: white;
-}
-
-.wheel-segment:nth-child(1) { background: #865747; transform: rotate(0deg) skewY(-45deg); }
-.wheel-segment:nth-child(2) { background: #AD7966; transform: rotate(90deg) skewY(-45deg); }
-.wheel-segment:nth-child(3) { background: #C49A83; transform: rotate(180deg) skewY(-45deg); }
-.wheel-segment:nth-child(4) { background: #684234; transform: rotate(270deg) skewY(-45deg); }
-
-.wheel-label {
-  position: absolute;
-  transform: skewY(45deg) rotate(22.5deg);
-  text-align: center;
-  width: 100px;
-  right: 10px;
-  bottom: 25px;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-}
-
-.wheel-center {
+.wheel-center-btn {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
   background: white;
   border-radius: 50%;
-  border: 4px solid var(--terracotta);
+  border: 4px solid var(--terracotta-dark);
   z-index: 5;
   display: grid;
   place-items: center;
-  font-size: 20px;
+  font-size: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 /* STYLES DASHBOARD ADMIN */
@@ -294,7 +265,7 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
     <img src="logo.png" alt="Flamingo Resto Café">
     <h1>FLAMINGO RESTO CAFÉ</h1>
     <p class="slogan">✨ Flamingo يا مدللتنا ✨</p>
-    <p class="desc">جوّك، وقتاك، وشيختك معانا.</p>
+    <p class="desc">جوّك، وقتك، وشيختك معانا.</p>
   </div>
 
   <div class="auth-card">
@@ -637,13 +608,24 @@ async function renderPage(page) {
         
         <div class="wheel-wrapper">
           <div class="wheel-pointer"></div>
-          <div class="wheel-box" id="wheelBox">
-            <div class="wheel-segment"><span class="wheel-label">☕ قهوة</span></div>
-            <div class="wheel-segment"><span class="wheel-label">🥐 كرواسون</span></div>
-            <div class="wheel-segment"><span class="wheel-label">🍹 كوكتيل</span></div>
-            <div class="wheel-segment"><span class="wheel-label">🎉 حظ سعيد</span></div>
-          </div>
-          <div class="wheel-center">🦩</div>
+          <svg class="wheel-svg-box" id="wheelSvg" viewBox="0 0 200 200">
+            <!-- Segment 1: قهوة -->
+            <path d="M 100,100 L 100,0 A 100,100 0 0,1 200,100 Z" fill="#865747" />
+            <text x="140" y="60" fill="#ffffff" font-size="11" font-weight="bold" transform="rotate(45, 140, 60)">☕ قهوة</text>
+            
+            <!-- Segment 2: كرواسون -->
+            <path d="M 100,100 L 200,100 A 100,100 0 0,1 100,200 Z" fill="#AD7966" />
+            <text x="140" y="145" fill="#ffffff" font-size="11" font-weight="bold" transform="rotate(135, 140, 145)">🥐 كرواسون</text>
+            
+            <!-- Segment 3: كوكتيل -->
+            <path d="M 100,100 L 100,200 A 100,100 0 0,1 0,100 Z" fill="#C49A83" />
+            <text x="55" y="145" fill="#ffffff" font-size="11" font-weight="bold" transform="rotate(225, 55, 145)">🍹 كوكتيل</text>
+            
+            <!-- Segment 4: حظ سعيد -->
+            <path d="M 100,100 L 0,100 A 100,100 0 0,1 100,0 Z" fill="#684234" />
+            <text x="55" y="60" fill="#ffffff" font-size="11" font-weight="bold" transform="rotate(315, 55, 60)">🎉 حظ سعيد</text>
+          </svg>
+          <div class="wheel-center-btn">🦩</div>
         </div>
 
         <button class="primary" id="spinBtn" onclick="spinWheel()">تدوير العجلة</button>
@@ -772,7 +754,7 @@ async function searchAndValidateMember(token) {
 let wheelRotation = 0;
 
 function spinWheel() {
-  const wheelBox = $("wheelBox");
+  const wheelSvg = $("wheelSvg");
   const btn = $("spinBtn");
   const resultBox = $("wheelResult");
 
@@ -789,10 +771,11 @@ function spinWheel() {
   btn.disabled = true;
   resultBox.classList.add("hidden");
 
+  // زوايا التوقف المحدّدة بالضبط للـ SVG
   const prizes = [
-    { text: "☕ مبروك ! رابحت معانا قهوة بلاش !", angle: 315 },
-    { text: "🥐 مبروك ! رابحت معانا كرواسون بلاش !", angle: 225 },
-    { text: "🍹 مبروك ! تخفيض -50% على الكوكتيل متاعك !", angle: 135 },
+    { text: "🎉 مبروك ! رابحت معانا قهوة بلاش !", angle: 315 },
+    { text: "🎉 مبروك ! تخفيض -20% على الادسيون متاعك !", angle: 225 },
+    { text: "🎉 مبروك ! تخفيض -50% على الادسيون متاعك !", angle: 135 },
     { text: "🎉 للأسف ! حظ سعيد المرة القادمة !", angle: 45 }
   ];
 
@@ -802,7 +785,7 @@ function spinWheel() {
   const fullRounds = 5 * 360;
   wheelRotation += fullRounds + selectedPrize.angle - (wheelRotation % 360);
   
-  wheelBox.style.transform = "rotate(" + wheelRotation + "deg)";
+  wheelSvg.style.transform = "rotate(" + wheelRotation + "deg)";
 
   setTimeout(() => {
     localStorage.setItem(lastPlayedKey, today);
