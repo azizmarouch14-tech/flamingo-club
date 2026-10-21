@@ -20,6 +20,7 @@
   --text: #382A25;
   --muted: #86736A;
   --border: #E8DCD3;
+  --success: #2e7d32;
 }
 
 * { box-sizing: border-box; }
@@ -41,7 +42,6 @@ button:focus-visible, input:focus-visible {
 }
 
 /* AUTHENTIFICATION */
-
 .auth-screen {
   min-height: 100vh;
   display: grid;
@@ -145,7 +145,6 @@ label {
 }
 
 .primary:hover { background: var(--terracotta-dark); }
-
 .full { width: 100%; margin-top: 20px; }
 
 .message {
@@ -156,7 +155,6 @@ label {
 }
 
 /* APPLICATION */
-
 .topbar {
   background: white;
   border-bottom: 1px solid var(--border);
@@ -258,30 +256,11 @@ label {
   gap: 20px;
 }
 
-.hero small {
-  letter-spacing: 3px;
-  font-weight: bold;
-}
-
-.hero h1 {
-  font-size: clamp(28px, 4vw, 43px);
-  margin: 15px 0;
-  font-weight: 500;
-}
-
-.hero p {
-  line-height: 1.7;
-  color: #FFF1E8;
-}
-
-.hero .primary {
-  background: var(--cream);
-  color: var(--terracotta-dark);
-}
-
-.hero-symbol {
-  font-size: 85px;
-}
+.hero small { letter-spacing: 3px; font-weight: bold; }
+.hero h1 { font-size: clamp(28px, 4vw, 43px); margin: 15px 0; font-weight: 500; }
+.hero p { line-height: 1.7; color: #FFF1E8; }
+.hero .primary { background: var(--cream); color: var(--terracotta-dark); }
+.hero-symbol { font-size: 85px; }
 
 .section-heading {
   display: flex;
@@ -290,20 +269,10 @@ label {
   gap: 12px;
   margin: 30px 0 17px;
 }
-
 .section-heading h2 { margin: 0; font-size: 22px; }
 
-.muted {
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 17px;
-}
+.muted { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
 
 .card {
   background: white;
@@ -311,7 +280,6 @@ label {
   border-radius: 14px;
   overflow: hidden;
 }
-
 .card-art {
   height: 135px;
   display: grid;
@@ -319,9 +287,7 @@ label {
   font-size: 48px;
   background: linear-gradient(135deg, #E4C7B6, #F6EAE0);
 }
-
 .card-body { padding: 17px; }
-
 .tag {
   display: inline-block;
   background: var(--beige);
@@ -331,68 +297,71 @@ label {
   font-size: 10px;
   font-weight: bold;
 }
-
 .card h3 { font-size: 17px; }
+.card p { color: var(--muted); font-size: 13px; line-height: 1.6; }
 
-.card p {
+/* SYSTEME DE TAMPONS DE FIDELITE (6 VISITES) */
+.stamps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 25px 0;
+  max-width: 500px;
+}
+
+.stamp-box {
+  background: white;
+  border: 2px dashed var(--terracotta-light);
+  border-radius: 12px;
+  height: 75px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: bold;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
 }
 
-/* CARTE DE FIDELITE */
-
-.loyalty-card {
-  background: linear-gradient(130deg, #704838, #AD7966 70%, #CBA18A);
-  border-radius: 18px;
-  padding: 28px;
-  color: white;
-  max-width: 650px;
-}
-
-.loyalty-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.loyalty-logo {
-  width: 70px;
-  height: 60px;
-  object-fit: contain;
-  background: white;
-  border-radius: 8px;
-}
-
-.loyalty-card h2 { margin-top: 28px; }
-
-.member-id {
-  color: #F4DFD3;
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-
-.loyalty-bottom {
-  margin-top: 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 20px;
-}
-
-.points {
-  font-size: 32px;
-  font-weight: bold;
-}
-
-.qr-box {
-  background: white;
+.stamp-box.filled {
+  background: var(--beige);
+  border: 2px solid var(--terracotta);
   color: var(--terracotta-dark);
-  border-radius: 8px;
-  padding: 10px;
+}
+
+.stamp-box.gift {
+  background: linear-gradient(135deg, #AD7966, #865747);
+  color: white;
+  border: 2px solid #865747;
+}
+
+/* ROUE DE LA CHANCE (JEU) */
+.wheel-container {
   text-align: center;
-  font-size: 11px;
-  font-weight: bold;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 30px;
+  max-width: 500px;
+  margin: auto;
+}
+
+.wheel {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 8px solid var(--terracotta);
+  margin: 20px auto;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(
+    #E9D8CB 0deg 60deg,
+    #AD7966 60deg 120deg,
+    #FBF7F2 120deg 180deg,
+    #865747 180deg 240deg,
+    #D0A18D 240deg 300deg,
+    #382A25 300deg 360deg
+  );
+  font-size: 28px;
+  transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
 }
 
 .notice {
@@ -421,38 +390,21 @@ label {
 }
 
 /* MOBILE */
-
 @media(max-width: 850px) {
-  .auth-screen {
-    grid-template-columns: 1fr;
-    padding: 20px;
-    gap: 10px;
-  }
+  .auth-screen { grid-template-columns: 1fr; padding: 20px; gap: 10px; }
   .layout { grid-template-columns: 1fr; }
   .sidebar {
-    position: fixed;
-    z-index: 10;
-    bottom: 0; left: 0; right: 0;
-    min-height: auto;
-    display: flex;
-    justify-content: space-around;
-    padding: 7px 3px;
-    background: white;
-    border-top: 1px solid var(--border);
+    position: fixed; z-index: 10; bottom: 0; left: 0; right: 0;
+    min-height: auto; display: flex; justify-content: space-around;
+    padding: 7px 3px; background: white; border-top: 1px solid var(--border);
   }
   .nav-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 10px;
-    padding: 8px 2px;
-    margin: 0;
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    font-size: 10px; padding: 8px 2px; margin: 0;
   }
   .content { padding: 20px 14px 100px; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
 @media(max-width: 520px) {
   .cards { grid-template-columns: 1fr; }
 }
@@ -535,7 +487,6 @@ label {
 </div>
 
 <script>
-// Initialisation unique de Supabase
 const SUPABASE_URL = 'https://rwoirkuwvdgsgyxytfmu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_RXTtm3S7JyrmgEhe5aX85A_S5IGCheQ';
 
@@ -549,7 +500,7 @@ let currentUser = { name: "Membre Flamingo", email: "", id: "" };
 let activePage = "home";
 let eventsList = [];
 let offersList = [];
-let loyaltyData = { points: 0, qr_token: "---" };
+let loyaltyData = { visits: 0 }; // 6 visites maximum avant cadeau
 
 const $ = id => document.getElementById(id);
 
@@ -597,7 +548,7 @@ $("authForm").addEventListener("submit", async event => {
       return;
     }
 
-    const { data, error } = await supabaseClient.auth.signUp({
+    const { error } = await supabaseClient.auth.signUp({
       email: email,
       password: password,
       options: { data: { full_name: fullName } }
@@ -606,7 +557,7 @@ $("authForm").addEventListener("submit", async event => {
     if (error) {
       $("authMessage").textContent = "Erreur : " + error.message;
     } else {
-      $("authMessage").textContent = "Compte créé ! Vous pouvez maintenant vous connecter.";
+      $("authMessage").textContent = "Compte créé ! Veuillez vous connecter.";
     }
   } else {
     const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -626,7 +577,6 @@ async function loadUserDataAndEnterApp(user) {
   currentUser.email = user.email;
   currentUser.id = user.id;
 
-  // Récupérer le profil
   const { data: profile } = await supabaseClient
     .from('profiles')
     .select('full_name')
@@ -635,19 +585,17 @@ async function loadUserDataAndEnterApp(user) {
 
   currentUser.name = profile?.full_name || user.email.split("@")[0];
 
-  // Récupérer la carte de fidélité
   const { data: loyalty } = await supabaseClient
     .from('loyalty_cards')
-    .select('points, qr_token')
+    .select('points')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (loyalty) {
-    loyaltyData.points = loyalty.points;
-    loyaltyData.qr_token = loyalty.qr_token;
+    // On utilise 'points' comme compteur de visites (de 0 à 6)
+    loyaltyData.visits = Math.min(loyalty.points, 6);
   }
 
-  // Récupérer les événements et offres
   const { data: evs } = await supabaseClient.from('events').select('*').eq('is_published', true);
   if (evs) eventsList = evs;
 
@@ -733,30 +681,37 @@ function renderPage(page) {
       <div class="section-heading"><h2>Les offres Flamingo</h2></div>
       <div class="cards">${offersList.map(card).join("") || '<p class="muted">Aucune offre publiée.</p>'}</div>`;
   } else if (page === "loyalty") {
+    // Génération des 6 cases de tampons
+    let stampsHTML = "";
+    for (let i = 1; i <= 6; i++) {
+      const isFilled = i <= loyaltyData.visits;
+      const isGift = i === 6;
+      let cssClass = isGift ? "stamp-box gift" : (isFilled ? "stamp-box filled" : "stamp-box");
+      let content = isGift ? "🎁" : (isFilled ? "✓" : i);
+      stampsHTML += `<div class="${cssClass}">${content}</div>`;
+    }
+
+    let statusMsg = loyaltyData.visits >= 6 
+      ? "🎉 Félicitations ! Vous avez atteint 6 visites. Présentez votre carte au comptoir pour recevoir votre cadeau !" 
+      : `Il vous reste ${6 - loyaltyData.visits} visite(s) avant de débloquer votre cadeau !`;
+
     main.innerHTML = `
-      <div class="section-heading"><h2>Ma carte de fidélité</h2></div>
-      <div class="loyalty-card">
-        <div class="loyalty-header">
-          <div>
-            <div style="letter-spacing:2px;font-size:12px">FLAMINGO CAFÉ-RESTAURANT</div>
-            <div style="margin-top:8px">CARTE MEMBRE</div>
-          </div>
-          <img class="loyalty-logo" src="logo.png" alt="Flamingo">
-        </div>
-        <h2>${escapeHTML(currentUser.name)}</h2>
-        <div class="member-id">MEMBRE · ${escapeHTML(currentUser.id)}</div>
-        <div class="loyalty-bottom">
-          <div>
-            <div style="font-size:12px">MES POINTS</div>
-            <div class="points">${loyaltyData.points} pts</div>
-          </div>
-          <div class="qr-box">Token ID:<br><span style="font-size:9px">${escapeHTML(loyaltyData.qr_token.slice(0,8))}...</span></div>
-        </div>
+      <div class="section-heading"><h2>Ma carte de fidélité (6 Visites)</h2></div>
+      <div class="profile-box">
+        <h3>${escapeHTML(currentUser.name)}</h3>
+        <p class="muted">Tampons de visites validés par le restaurant.</p>
+        <div class="stamps-grid">${stampsHTML}</div>
+        <div class="notice">${statusMsg}</div>
       </div>`;
   } else if (page === "games") {
     main.innerHTML = `
-      <div class="section-heading"><h2>Jeux & Tirage au sort</h2></div>
-      <div class="notice">Les jeux et concours seront bientôt activés.</div>`;
+      <div class="section-heading"><h2>Roue de la Chance - Lucky Wheel</h2></div>
+      <div class="wheel-container">
+        <p class="muted">Tournez la roue pour tenter de gagner une surprise Flamingo !</p>
+        <div id="wheel" class="wheel">🎡</div>
+        <button class="primary" id="spinBtn" onclick="spinWheel()">Tourner la roue</button>
+        <div id="wheelResult" class="notice hidden" style="margin-top:20px"></div>
+      </div>`;
   } else if (page === "profile") {
     main.innerHTML = `
       <div class="section-heading"><h2>Mon profil</h2></div>
@@ -770,7 +725,32 @@ function renderPage(page) {
   }
 }
 
-// Vérifier la session au chargement
+function spinWheel() {
+  const wheel = $("wheel");
+  const btn = $("spinBtn");
+  const resultBox = $("wheelResult");
+
+  btn.disabled = true;
+  resultBox.classList.add("hidden");
+
+  // Animation de rotation aléatoire (entre 4 et 8 tours complets + un angle)
+  const randomDegree = Math.floor(2000 + Math.random() * 2000);
+  wheel.style.transform = `rotate(${randomDegree}deg)`;
+
+  setTimeout(() => {
+    const gifts = [
+      "☕ Un café offert !", 
+      "🥐 Une viennoiserie gratuite !", 
+      "🍹 -50% sur votre cocktail !", 
+      "🎉 Ret try again (Retente ta chance !)"
+    ];
+    const won = gifts[Math.floor(Math.random() * gifts.length)];
+    resultBox.textContent = `🎁 Résultat : ${won}`;
+    resultBox.classList.remove("hidden");
+    btn.disabled = false;
+  }, 4000);
+}
+
 if (supabaseClient) {
   supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (session) {
