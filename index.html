@@ -320,14 +320,6 @@ label {
   background: linear-gradient(135deg, #E4C7B6, #F6EAE0);
 }
 
-.card-art.dark {
-  background: linear-gradient(135deg, #93634F, #C39A85);
-}
-
-.card-art.beige {
-  background: linear-gradient(135deg, #E4D1BC, #F8F0E6);
-}
-
 .card-body { padding: 17px; }
 
 .tag {
@@ -346,14 +338,6 @@ label {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
-}
-
-.card-link {
-  border: none;
-  background: transparent;
-  color: var(--terracotta-dark);
-  font-weight: bold;
-  padding: 5px 0;
 }
 
 /* CARTE DE FIDELITE */
@@ -444,54 +428,33 @@ label {
     padding: 20px;
     gap: 10px;
   }
-
-  .brand img { width: min(70%, 300px); }
-  .brand h1 { font-size: 26px; margin: 12px; }
-  .brand p { font-size: 13px; }
-  .auth-card { max-width: 500px; }
-
   .layout { grid-template-columns: 1fr; }
   .sidebar {
     position: fixed;
     z-index: 10;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0; left: 0; right: 0;
     min-height: auto;
     display: flex;
     justify-content: space-around;
     padding: 7px 3px;
-    border-right: 0;
+    background: white;
     border-top: 1px solid var(--border);
   }
-
   .nav-btn {
     flex: 1;
-    width: auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 4px;
+    align-items: center;
     font-size: 10px;
     padding: 8px 2px;
     margin: 0;
   }
-
   .content { padding: 20px 14px 100px; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hero { padding: 24px; }
-  .hero-symbol { font-size: 55px; }
 }
 
 @media(max-width: 520px) {
   .cards { grid-template-columns: 1fr; }
-  .hero-symbol { display: none; }
-  .hero { padding: 23px; }
-  .auth-card { padding: 24px; }
-  .logo { letter-spacing: 1px; font-size: 13px; }
-  .logo img { width: 42px; }
-  .topbar { padding: 10px; }
-  .outline { padding: 8px; font-size: 12px; }
 }
 </style>
 </head>
@@ -508,9 +471,7 @@ label {
 
   <div class="auth-card">
     <h2 id="authTitle">Bienvenue !</h2>
-    <p class="subtitle" id="authSubtitle">
-      Connectez-vous à votre espace Flamingo.
-    </p>
+    <p class="subtitle" id="authSubtitle">Connectez-vous à votre espace Flamingo.</p>
 
     <div class="tabs">
       <button id="loginTab" class="active" type="button">Connexion</button>
@@ -550,12 +511,9 @@ label {
       <img src="logo.png" alt="Flamingo">
       <span>FLAMINGO CLUB</span>
     </div>
-
     <div class="user-actions">
       <div class="avatar" id="topUser">F</div>
-      <button class="outline" id="logoutBtn" type="button">
-        Déconnexion
-      </button>
+      <button class="outline" id="logoutBtn" type="button">Déconnexion</button>
     </div>
   </header>
 
@@ -568,7 +526,6 @@ label {
       <button class="nav-btn" data-page="games">🎁 Jeux</button>
       <button class="nav-btn" data-page="profile">👤 Profil</button>
     </nav>
-
     <main id="mainContent" class="content"></main>
   </div>
 
@@ -578,17 +535,23 @@ label {
 </div>
 
 <script>
-// Initialisation de Supabase
+// Initialisation de Supabase sécurisée
 const SUPABASE_URL = 'https://rwoirkuwvdgsgyxytfmu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_RXTtm3S7JyrmgEhe5aX85A_S5IGCheQ';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let supabase = null;
+try {
+  if (window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.error("Le SDK Supabase n'est pas chargé.");
+  }
+} catch (e) {
+  console.error("Erreur d'initialisation Supabase:", e);
+}
 
 let mode = "login";
-let currentUser = {
-  name: "Membre Flamingo",
-  email: "",
-  id: ""
-};
+let currentUser = { name: "Membre Flamingo", email: "", id: "" };
 let activePage = "home";
 let eventsList = [];
 let offersList = [];
@@ -620,9 +583,14 @@ $("registerTab").addEventListener("click", () => setMode("register"));
 
 $("authForm").addEventListener("submit", async event => {
   event.preventDefault();
+  if (!supabase) {
+    $("authMessage").textContent = "Erreur : Supabase n'est pas initialisé.";
+    return;
+  }
+
   const email = $("email").value.trim();
   const password = $("password").value;
-  $("authMessage").textContent = "Chargement en cours...";
+  $("authMessage").textContent = "Connexion en cours...";
 
   if (mode === "register") {
     const fullName = $("fullName").value.trim();
@@ -644,7 +612,7 @@ $("authForm").addEventListener("submit", async event => {
     if (error) {
       $("authMessage").textContent = "Erreur : " + error.message;
     } else {
-      $("authMessage").textContent = "Compte créé ! Veuillez vérifier vos e-mails pour confirmer votre inscription (si activé) ou connectez-vous.";
+      $("authMessage").textContent = "Compte créé avec succès ! Vous pouvez vous connecter.";
     }
   } else {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -654,7 +622,7 @@ $("authForm").addEventListener("submit", async event => {
 
     if (error) {
       $("authMessage").textContent = "Erreur de connexion : " + error.message;
-    } else {
+    } else if (data.user) {
       await loadUserDataAndEnterApp(data.user);
     }
   }
@@ -671,11 +639,7 @@ async function loadUserDataAndEnterApp(user) {
     .eq('id', user.id)
     .single();
 
-  if (profile) {
-    currentUser.name = profile.full_name || user.email.split("@")[0];
-  } else {
-    currentUser.name = user.email.split("@")[0];
-  }
+  currentUser.name = profile?.full_name || user.email.split("@")[0];
 
   // Récupérer la carte de fidélité
   const { data: loyalty } = await supabase
@@ -689,7 +653,7 @@ async function loadUserDataAndEnterApp(user) {
     loyaltyData.qr_token = loyalty.qr_token;
   }
 
-  // Récupérer les événements et offres dynamiques
+  // Récupérer les événements et offres
   const { data: evs } = await supabase.from('events').select('*').eq('is_published', true);
   if (evs) eventsList = evs;
 
@@ -704,7 +668,7 @@ async function loadUserDataAndEnterApp(user) {
 }
 
 $("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
+  if (supabase) await supabase.auth.signOut();
   $("appScreen").classList.add("hidden");
   $("authScreen").classList.remove("hidden");
   $("authMessage").textContent = "Vous avez été déconnecté.";
@@ -712,11 +676,7 @@ $("logoutBtn").addEventListener("click", async () => {
 
 function escapeHTML(value) {
   return String(value || "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   })[char]);
 }
 
@@ -816,12 +776,14 @@ function renderPage(page) {
   }
 }
 
-// Vérifier si l'utilisateur est déjà connecté au chargement de la page
-supabase.auth.getSession().then(({ data: { session } }) => {
-  if (session) {
-    loadUserDataAndEnterApp(session.user);
-  }
-});
+// Vérifier si une session est active au chargement
+if (supabase) {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      loadUserDataAndEnterApp(session.user);
+    }
+  });
+}
 
 setMode("login");
 </script>
