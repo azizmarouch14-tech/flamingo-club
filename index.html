@@ -448,7 +448,7 @@ async function loadUserDataAndEnterApp(user) {
 
   currentUser.name = profile?.full_name || user.email.split("@")[0];
 
-  // Gestion robuste et automatique du qr_token pour éviter l'erreur "Client introuvable"
+  // Gestion robuste et automatique du qr_token
   let { data: loyalty } = await supabaseClient
     .from('loyalty_cards')
     .select('id, points, stamps, qr_token')
@@ -958,7 +958,7 @@ async function loadVisitsHistory() {
   }).join("");
 }
 
-// SCANNER & VALIDATION DE TAMPON (+1) ET RESET À 6
+// SCANNER & VALIDATION DE TAMPON ULTRA-TOLÉRANT (+1)
 function startCameraScan() {
   const btn = $("startScanBtn");
   btn.textContent = "Caméra active...";
@@ -985,24 +985,26 @@ function startCameraScan() {
   });
 }
 
-async function searchAndValidateMember(token) {
+async function searchAndValidateMember(inputToken) {
   const res = $("scanResult");
-  if (!token) {
+  const cleanToken = inputToken ? inputToken.trim() : "";
+  
+  if (!cleanToken) {
     alert("Veuillez saisir ou scanner un code valide.");
     return;
   }
 
   res.classList.remove("hidden");
-  res.innerHTML = "Vérification et validation du discount...";
+  res.innerHTML = "Recherche du client en cours...";
 
   const { data: card, error } = await supabaseClient
     .from('loyalty_cards')
     .select('*, profiles(full_name)')
-    .eq('qr_token', token)
+    .or(`qr_token.eq.${cleanToken},user_id.eq.${cleanToken.replace('FLAMINGO_', '')}`)
     .maybeSingle();
 
   if (error || !card) {
-    res.innerHTML = `❌ Client introuvable. Code QR invalide.`;
+    res.innerHTML = `❌ <strong>Client introuvable.</strong> Le code scanné (« ${escapeHTML(cleanToken)} ») ne correspond à aucun compte dans Supabase.`;
     return;
   }
 
@@ -1013,7 +1015,9 @@ async function searchAndValidateMember(token) {
   await supabaseClient.from('visits').insert({ user_id: card.user_id });
 
   const newStampsCount = isGift ? 0 : currentStamps;
-  await supabaseClient.from('loyalty_cards').update({ stamps: newStampsCount }).eq('id', card.id);
+  await supabaseClient.from('loyalty_cards')
+    .update({ stamps: newStampsCount })
+    .eq('id', card.id);
 
   let msg = isGift 
     ? `🎉 <strong>Félicitations !</strong> C'est le 6ème tampon pour <strong>${escapeHTML(card.profiles?.full_name)}</strong>. <strong>Offrez-lui son café gratuit !</strong> La carte a été réinitialisée à 0.`
