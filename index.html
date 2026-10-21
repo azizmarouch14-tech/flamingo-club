@@ -8,9 +8,9 @@
 
 <!-- SDK Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Scanner QR Code (Caméra Admin) -->
+<!-- Scanner QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-<!-- Générateur QR Code (Client) -->
+<!-- Générateur QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
@@ -204,4 +204,626 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
   position: absolute;
   width: 50%;
   height: 50%;
-  transform-origin: 100% 1
+  transform-origin: 100% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+  color: white;
+}
+
+.wheel-segment:nth-child(1) { background: #865747; transform: rotate(0deg) skewY(-45deg); }
+.wheel-segment:nth-child(2) { background: #AD7966; transform: rotate(90deg) skewY(-45deg); }
+.wheel-segment:nth-child(3) { background: #C49A83; transform: rotate(180deg) skewY(-45deg); }
+.wheel-segment:nth-child(4) { background: #684234; transform: rotate(270deg) skewY(-45deg); }
+
+.wheel-label {
+  position: absolute;
+  transform: skewY(45deg) rotate(22.5deg);
+  text-align: center;
+  width: 100px;
+  right: 10px;
+  bottom: 25px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  border: 4px solid var(--terracotta);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+/* STYLES DASHBOARD ADMIN */
+.stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+.stat-card { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; text-align: center; }
+.stat-number { font-size: 32px; font-weight: bold; color: var(--terracotta-dark); margin-top: 5px; }
+
+.scan-box {
+  background: white; border: 1px solid var(--border); border-radius: 15px; padding: 25px; max-width: 600px; margin-bottom: 30px;
+}
+.result-card { background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; }
+
+/* TAMPONS FIDELITE */
+.stamps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 25px 0; max-width: 500px; }
+.stamp-box {
+  background: white; border: 2px dashed var(--terracotta-light); border-radius: 12px; height: 75px;
+  display: grid; place-items: center; font-size: 24px; font-weight: bold; color: var(--muted);
+}
+.stamp-box.filled { background: var(--beige); border: 2px solid var(--terracotta); color: var(--terracotta-dark); }
+.stamp-box.gift { background: linear-gradient(135deg, #AD7966, #865747); color: white; border: 2px solid #865747; }
+
+.wheel-container { text-align: center; background: white; border: 1px solid var(--border); border-radius: 15px; padding: 30px; max-width: 500px; margin: auto; }
+
+.notice { background: #F4E8DE; border-radius: 10px; padding: 15px; margin: 20px 0; color: #755340; font-size: 13px; line-height: 1.7; }
+.profile-box { background: white; border: 1px solid var(--border); border-radius: 15px; padding: 25px; max-width: 650px; }
+.footer { padding: 25px; text-align: center; font-size: 12px; color: var(--muted); }
+
+/* MOBILE */
+@media(max-width: 850px) {
+  .auth-screen { grid-template-columns: 1fr; padding: 20px; gap: 10px; }
+  .layout { grid-template-columns: 1fr; }
+  .stat-cards { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; min-height: auto;
+    display: flex; justify-content: space-around; padding: 7px 3px; background: white; border-top: 1px solid var(--border); border-left: 0;
+  }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; font-size: 10px; padding: 8px 2px; margin: 0; }
+  .content { padding: 20px 14px 100px; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media(max-width: 520px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+
+<body>
+
+<!-- DOKHOUL / REGISTRATION -->
+<section id="authScreen" class="auth-screen">
+  <div class="brand">
+    <img src="logo.png" alt="Flamingo Resto Café">
+    <h1>FLAMINGO RESTO CAFÉ</h1>
+    <p class="slogan">✨ Flamingo يا مدللتنا ✨</p>
+    <p class="desc">جوّك، وقتاك، وشيختك معانا.</p>
+  </div>
+
+  <div class="auth-card">
+    <h2 id="authTitle">مرحبا بيك !</h2>
+    <p class="subtitle" id="authSubtitle">سجّل دخولك لـ espace Flamingo متاعك.</p>
+
+    <div class="tabs">
+      <button id="loginTab" class="active" type="button">تسجيل الدخول</button>
+      <button id="registerTab" type="button">عمل حساب جديد</button>
+    </div>
+
+    <form id="authForm">
+      <div id="nameField" class="hidden">
+        <label for="fullName">الاسم واللقب</label>
+        <input class="field" id="fullName" autocomplete="name" placeholder="اكتب اسمك الكامل">
+      </div>
+
+      <label for="email">الإيميل (Adresse e-mail)</label>
+      <input class="field" id="email" type="email" autocomplete="email" placeholder="example@gmail.com" required>
+
+      <label for="password">كلمة السر (Mot de passe)</label>
+      <input class="field" id="password" type="password" minlength="6" autocomplete="current-password" placeholder="6 أرقام أو حروف على الأقل" required>
+
+      <div id="confirmField" class="hidden">
+        <label for="confirmPassword">تأكيد كلمة السر</label>
+        <input class="field" id="confirmPassword" type="password" minlength="6" placeholder="عاود اكتب كلمة السر">
+      </div>
+
+      <button class="primary full" id="authSubmit" type="submit">دخول</button>
+    </form>
+
+    <div id="authMessage" class="message" role="status"></div>
+  </div>
+</section>
+
+<!-- APPLICATION -->
+<div id="appScreen" class="hidden">
+  <header class="topbar">
+    <div class="logo">
+      <img src="logo.png" alt="Flamingo Resto Café">
+      <span>FLAMINGO RESTO CAFÉ</span>
+    </div>
+    <div class="user-actions">
+      <div class="avatar" id="topUser">F</div>
+      <button class="outline" id="logoutBtn" type="button">خروج</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebarNav" aria-label="Navigation">
+      <button class="nav-btn active" data-page="home">🏠 الرئيسية</button>
+      <button class="nav-btn" data-page="events">🎶 السهرات</button>
+      <button class="nav-btn" data-page="offers">✨ العروض</button>
+      <button class="nav-btn" data-page="loyalty">💳 كارت الفيداليتي</button>
+      <button class="nav-btn" data-page="games">🎁 العاب وجوائز</button>
+      <button class="nav-btn" data-page="profile">👤 الحساب متاعي</button>
+    </nav>
+    <main id="mainContent" class="content"></main>
+  </div>
+
+  <footer class="footer">
+    FLAMINGO RESTO CAFÉ · Flamingo يا مدللتنا ✨
+  </footer>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://rwoirkuwvdgsgyxytfmu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_RXTtm3S7JyrmgEhe5aX85A_S5IGCheQ';
+
+let supabaseClient = null;
+if (window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+let mode = "login";
+let currentUser = { name: "عضو فلامينجو", email: "", id: "" };
+let activePage = "home";
+let eventsList = [];
+let offersList = [];
+let loyaltyData = { visits: 0, qr_token: "" };
+let html5QrCode = null;
+
+const ADMIN_EMAIL = "azizmrouch@gmail.com";
+const $ = id => document.getElementById(id);
+
+function setMode(nextMode) {
+  mode = nextMode;
+  const register = mode === "register";
+
+  $("loginTab").classList.toggle("active", !register);
+  $("registerTab").classList.toggle("active", register);
+
+  $("nameField").classList.toggle("hidden", !register);
+  $("confirmField").classList.toggle("hidden", !register);
+
+  $("fullName").required = register;
+  $("confirmPassword").required = register;
+
+  $("authTitle").textContent = register ? "مرحبا بيك معانا !" : "مرحبا بيك !";
+  $("authSubtitle").textContent = register ? "عمل حساب جديد في Flamingo Resto Café." : "سجّل دخولك لـ espace Flamingo متاعك.";
+  $("authSubmit").textContent = register ? "إنشاء حساب" : "دخول";
+  $("authMessage").textContent = "";
+}
+
+$("loginTab").addEventListener("click", () => setMode("login"));
+$("registerTab").addEventListener("click", () => setMode("register"));
+
+$("authForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (!supabaseClient) {
+    $("authMessage").textContent = "مشكل: تعذر الاتصال بـ Supabase.";
+    return;
+  }
+
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  $("authMessage").textContent = "لحظة من فضلك...";
+
+  if (mode === "register") {
+    const fullName = $("fullName").value.trim();
+    if (fullName.length < 2) {
+      $("authMessage").textContent = "اكتب اسمك اللقب الصحيح.";
+      return;
+    }
+    if (password !== $("confirmPassword").value) {
+      $("authMessage").textContent = "كلمات السر مش كيف كيف.";
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { full_name: fullName } }
+    });
+
+    if (error) {
+      $("authMessage").textContent = "غلطة: " + error.message;
+    } else {
+      $("authMessage").textContent = "تم إنشاء الحساب بنجاح! تنجم توا تسجل دخولك.";
+    }
+  } else {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      $("authMessage").textContent = "مشكل في الدخول: " + error.message;
+    } else if (data.user) {
+      await loadUserDataAndEnterApp(data.user);
+    }
+  }
+});
+
+async function loadUserDataAndEnterApp(user) {
+  currentUser.email = user.email;
+  currentUser.id = user.id;
+
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  currentUser.name = profile?.full_name || user.email.split("@")[0];
+
+  const { data: loyalty } = await supabaseClient
+    .from('loyalty_cards')
+    .select('points, qr_token')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (loyalty) {
+    loyaltyData.visits = Math.min(loyalty.points, 6);
+    loyaltyData.qr_token = loyalty.qr_token;
+  }
+
+  const { data: evs } = await supabaseClient.from('events').select('*').eq('is_published', true);
+  if (evs) eventsList = evs;
+
+  const { data: offs } = await supabaseClient.from('offers').select('*').eq('is_published', true);
+  if (offs) offersList = offs;
+
+  const sidebarNav = $("sidebarNav");
+  const existingAdminBtn = sidebarNav.querySelector('[data-page="admin"]');
+  
+  if (currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    if (!existingAdminBtn) {
+      const adminBtn = document.createElement("button");
+      adminBtn.className = "nav-btn admin-link";
+      adminBtn.dataset.page = "admin";
+      adminBtn.innerHTML = "⚙️ لوحة الأدمن (Admin)";
+      adminBtn.addEventListener("click", () => goPage("admin"));
+      sidebarNav.appendChild(adminBtn);
+    }
+  } else if (existingAdminBtn) {
+    existingAdminBtn.remove();
+  }
+
+  $("authScreen").classList.add("hidden");
+  $("appScreen").classList.remove("hidden");
+  $("topUser").textContent = currentUser.name.charAt(0).toUpperCase();
+
+  renderPage(activePage);
+}
+
+$("logoutBtn").addEventListener("click", async () => {
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop().catch(() => {});
+  }
+  if (supabaseClient) await supabaseClient.auth.signOut();
+  $("appScreen").classList.add("hidden");
+  $("authScreen").classList.remove("hidden");
+  $("authMessage").textContent = "تم تسجيل الخروج بنجاح.";
+});
+
+function escapeHTML(value) {
+  return String(value || "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+
+function card(item) {
+  return `
+    <article class="card">
+      <div class="card-art">✨</div>
+      <div class="card-body">
+        <span class="tag">FLAMINGO</span>
+        <h3>${escapeHTML(item.title)}</h3>
+        <p>${escapeHTML(item.description)}</p>
+      </div>
+    </article>`;
+}
+
+async function goPage(page) {
+  if (page !== "admin" && html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop().catch(() => {});
+  }
+  if (page === "admin" && currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    alert("ممنوع! الصفحة هذي للـ Admin فقط.");
+    return;
+  }
+  activePage = page;
+  document.querySelectorAll(".nav-btn").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === page);
+  });
+  renderPage(page);
+}
+
+document.querySelectorAll(".nav-btn").forEach(button => {
+  button.addEventListener("click", () => goPage(button.dataset.page));
+});
+
+async function renderPage(page) {
+  const main = $("mainContent");
+
+  if (page === "home") {
+    main.innerHTML = `
+      <section class="hero">
+        <div>
+          <small>🦩 Flamingo يا مدللتنا 🦩</small>
+          <h1>جوّك، وقتاك،<br>وشيختك معانا.</h1>
+          <p>عصباح والخير ${escapeHTML(currentUser.name)} ! اكتشف سهراتنا وأفضل العروض متاع Flamingo Resto Café.</p>
+          <button class="primary" onclick="goPage('offers')">اكتشف العروض</button>
+        </div>
+        <div class="hero-symbol">☕</div>
+      </section>
+
+      <div class="section-heading">
+        <div><h2>السهرات</h2><p class="muted">أحلى الأوقات تبدا من هنا.</p></div>
+        <button class="outline" onclick="goPage('events')">شوف الكل</button>
+      </div>
+      <div class="cards">${eventsList.slice(0,2).map(card).join("") || '<p class="muted">فما حتى سهرة توا.</p>'}</div>
+
+      <div class="section-heading">
+        <div><h2>العروض الخاصة</h2><p class="muted">بنيّات وفازات تتفرهد بيهم.</p></div>
+        <button class="outline" onclick="goPage('offers')">شوف الكل</button>
+      </div>
+      <div class="cards">${offersList.slice(0,2).map(card).join("") || '<p class="muted">فما حتى عرض توا.</p>'}</div>`;
+  } else if (page === "events") {
+    main.innerHTML = `
+      <div class="section-heading"><h2>سهرات Flamingo Resto Café</h2></div>
+      <div class="cards">${eventsList.map(card).join("") || '<p class="muted">فما حتى سهرة حاليا.</p>'}</div>`;
+  } else if (page === "offers") {
+    main.innerHTML = `
+      <div class="section-heading"><h2>عروض Flamingo Resto Café</h2></div>
+      <div class="cards">${offersList.map(card).join("") || '<p class="muted">فما حتى عرض حاليا.</p>'}</div>`;
+  } else if (page === "loyalty") {
+    let stampsHTML = "";
+    for (let i = 1; i <= 6; i++) {
+      const isFilled = i <= loyaltyData.visits;
+      const isGift = i === 6;
+      let cssClass = isGift ? "stamp-box gift" : (isFilled ? "stamp-box filled" : "stamp-box");
+      let content = isGift ? "🎁" : (isFilled ? "✓" : i);
+      stampsHTML += `<div class="${cssClass}">${content}</div>`;
+    }
+
+    let statusMsg = loyaltyData.visits >= 6 
+      ? "🎉 مبروك! كملت 6 زيارات. وري الـ QR Code هذا في الكاس في القهوة باش تاخد الكادو متاعك !" 
+      : `مزالتلك ${6 - loyaltyData.visits} زيارة(ارات) وتتحصل على الكادو متاعك !`;
+
+    main.innerHTML = `
+      <div class="section-heading"><h2>كارت الفيداليتي (6 زيارات)</h2></div>
+      
+      <div class="loyalty-container">
+        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ</div>
+        <h2>${escapeHTML(currentUser.name)}</h2>
+        
+        <div class="loyalty-bottom">
+          <div>
+            <div style="font-size:12px">عدد الزيارات</div>
+            <div class="points">${loyaltyData.visits} / 6</div>
+          </div>
+          <div class="qr-display" id="qrcode"></div>
+        </div>
+      </div>
+
+      <div class="profile-box">
+        <div class="stamps-grid">${stampsHTML}</div>
+        <div class="notice">${statusMsg}</div>
+      </div>`;
+
+    setTimeout(() => {
+      const qrEl = $("qrcode");
+      if (qrEl && loyaltyData.qr_token) {
+        qrEl.innerHTML = "";
+        new QRCode(qrEl, {
+          text: loyaltyData.qr_token,
+          width: 100,
+          height: 100
+        });
+      }
+    }, 100);
+
+  } else if (page === "games") {
+    main.innerHTML = `
+      <div class="section-heading"><h2>عجلة الحظ - Lucky Wheel 🎡</h2></div>
+      <div class="wheel-container">
+        <p class="muted">عندك الحق تدور العجلة <strong>مرّة واحدة في النهار</strong> باش تربح كادو !</p>
+        
+        <div class="wheel-wrapper">
+          <div class="wheel-pointer"></div>
+          <div class="wheel-box" id="wheelBox">
+            <div class="wheel-segment"><span class="wheel-label">☕ قهوة</span></div>
+            <div class="wheel-segment"><span class="wheel-label">🥐 كرواسون</span></div>
+            <div class="wheel-segment"><span class="wheel-label">🍹 كوكتيل</span></div>
+            <div class="wheel-segment"><span class="wheel-label">🎉 حظ سعيد</span></div>
+          </div>
+          <div class="wheel-center">🦩</div>
+        </div>
+
+        <button class="primary" id="spinBtn" onclick="spinWheel()">تدوير العجلة</button>
+        <div id="wheelResult" class="notice hidden" style="margin-top:20px"></div>
+      </div>`;
+  } else if (page === "profile") {
+    main.innerHTML = `
+      <div class="section-heading"><h2>الحساب متاعي</h2></div>
+      <div class="profile-box">
+        <div class="avatar">${escapeHTML(currentUser.name[0].toUpperCase())}</div>
+        <label>الاسم واللقب</label>
+        <input class="field" value="${escapeHTML(currentUser.name)}" readonly>
+        <label>الإيميل</label>
+        <input class="field" value="${escapeHTML(currentUser.email)}" readonly>
+      </div>`;
+  } else if (page === "admin") {
+    if (currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      main.innerHTML = `<div class="notice">غير مصرح لك بالدخول.</div>`;
+      return;
+    }
+
+    main.innerHTML = `
+      <div class="section-heading"><h2>⚙️ لوحة التحكم للأدمن (Admin)</h2></div>
+      
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="muted">عدد الحرفاء المسجلين</div>
+          <div class="stat-number" id="statMembers">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="muted">مجموع الزيارات المقبولة</div>
+          <div class="stat-number" id="statVisits">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="muted">هدف الكادو</div>
+          <div class="stat-number">6 زيارات</div>
+        </div>
+      </div>
+
+      <div class="scan-box">
+        <h3>📷 سكانير الـ QR Code متاع الكليون</h3>
+        <p class="muted">انقر على "حل الكاميرا" باش تسكاني الكود متاع الكليون مباشرة وتزيدله زيارة.</p>
+        
+        <div id="reader" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
+        <button class="outline full" id="startScanBtn" onclick="startCameraScan()" style="margin-bottom: 15px;">حل الكاميرا</button>
+
+        <div style="display: flex; gap: 10px;">
+          <input class="field" id="scanInput" placeholder="أو اكتب رمز Token هنا...">
+          <button class="primary" onclick="searchAndValidateMember($('scanInput').value.trim())">تأكيد الزيارة</button>
+        </div>
+
+        <div id="scanResult" class="result-card hidden"></div>
+      </div>`;
+
+    supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).then(({ count }) => {
+      if ($('statMembers'))$('statMembers').textContent = count || 0;
+    });
+    supabaseClient.from('visits').select('*', { count: 'exact', head: true }).then(({ count }) => {
+      if ($('statVisits'))$('statVisits').textContent = count || 0;
+    });
+  }
+}
+
+function startCameraScan() {
+  const btn = $("startScanBtn");
+  btn.textContent = "الكاميرا تخدم...";
+  btn.disabled = true;
+
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    async (decodedText) => {
+      $("scanInput").value = decodedText;
+      await searchAndValidateMember(decodedText);
+      if (html5QrCode && html5QrCode.isScanning) {
+        await html5QrCode.stop();
+        btn.textContent = "حل الكاميرا";
+        btn.disabled = false;
+      }
+    },
+    (errorMessage) => {}
+  ).catch(err => {
+    alert("مشكل في الكاميرا: " + err);
+    btn.textContent = "حل الكاميرا";
+    btn.disabled = false;
+  });
+}
+
+async function searchAndValidateMember(token) {
+  const res = $("scanResult");
+  if (!token) {
+    alert("من فضلك اكتب ولا سكاني كود صحيح.");
+    return;
+  }
+
+  res.classList.remove("hidden");
+  res.innerHTML = "جاري التثبت والتسجيل...";
+
+  const { data: card, error } = await supabaseClient
+    .from('loyalty_cards')
+    .select('*, profiles(full_name)')
+    .eq('qr_token', token)
+    .maybeSingle();
+
+  if (error || !card) {
+    res.innerHTML = `❌ كليون مش موجود. الكود غلط.`;
+    return;
+  }
+
+  const newVisits = card.points + 1;
+  const isGift = newVisits >= 6;
+
+  await supabaseClient.from('visits').insert({ user_id: card.user_id });
+
+  const resetPoints = isGift ? 0 : newVisits;
+  await supabaseClient.from('loyalty_cards').update({ points: resetPoints }).eq('id', card.id);
+
+  let msg = isGift 
+    ? `🎉 <strong>مبروك!</strong> هذي الزيارة رقم 6 للحريف <strong>${escapeHTML(card.profiles?.full_name)}</strong>. اعطيه الكادو متاعه! الكارت رجعت توا لـ 0.`
+    : `✅ تم تسجيل الزيارة بنجاح! <strong>${escapeHTML(card.profiles?.full_name)}</strong> عنده توا <strong>${newVisits}/6</strong> زيارات.`;
+
+  res.innerHTML = msg;
+}
+
+// LOGIQUE ROULETTE + LIMITATION 1 FOIS PAR JOUR
+let wheelRotation = 0;
+
+function spinWheel() {
+  const wheelBox = $("wheelBox");
+  const btn = $("spinBtn");
+  const resultBox = $("wheelResult");
+
+  const lastPlayedKey = "flamingo_wheel_" + currentUser.id;
+  const today = new Date().toISOString().split('T')[0];
+  const lastPlayedDate = localStorage.getItem(lastPlayedKey);
+
+  if (lastPlayedDate === today) {
+    resultBox.innerHTML = "⏳ <strong>لعبت اليوم!</strong> عندك الحق تدور العجلة مرة برك في النهار. ارجع غدوة و جرّب حظّك مرّة أخرى 😉";
+    resultBox.classList.remove("hidden");
+    return;
+  }
+
+  btn.disabled = true;
+  resultBox.classList.add("hidden");
+
+  const prizes = [
+    { text: "☕ مبروك ! رابحت معانا قهوة بلاش !", angle: 315 },
+    { text: "🥐 مبروك ! رابحت معانا كرواسون بلاش !", angle: 225 },
+    { text: "🍹 مبروك ! تخفيض -50% على الكوكتيل متاعك !", angle: 135 },
+    { text: "🎉 للأسف ! حظ سعيد المرة القادمة !", angle: 45 }
+  ];
+
+  const randomIndex = Math.floor(Math.random() * prizes.length);
+  const selectedPrize = prizes[randomIndex];
+
+  const fullRounds = 5 * 360;
+  wheelRotation += fullRounds + selectedPrize.angle - (wheelRotation % 360);
+  
+  wheelBox.style.transform = "rotate(" + wheelRotation + "deg)";
+
+  setTimeout(() => {
+    localStorage.setItem(lastPlayedKey, today);
+
+    resultBox.innerHTML = "🎁 <strong>النتيجة :</strong> " + selectedPrize.text;
+    resultBox.classList.remove("hidden");
+    btn.disabled = false;
+  }, 4000);
+}
+
+if (supabaseClient) {
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      loadUserDataAndEnterApp(session.user);
+    }
+  });
+}
+
+setMode("login");
+</script>
+
+</body>
+</html>
