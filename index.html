@@ -535,19 +535,13 @@ label {
 </div>
 
 <script>
-// Initialisation de Supabase sécurisée
+// Initialisation unique de Supabase
 const SUPABASE_URL = 'https://rwoirkuwvdgsgyxytfmu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_RXTtm3S7JyrmgEhe5aX85A_S5IGCheQ';
 
-let supabase = null;
-try {
-  if (window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } else {
-    console.error("Le SDK Supabase n'est pas chargé.");
-  }
-} catch (e) {
-  console.error("Erreur d'initialisation Supabase:", e);
+let supabaseClient = null;
+if (window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 let mode = "login";
@@ -583,14 +577,14 @@ $("registerTab").addEventListener("click", () => setMode("register"));
 
 $("authForm").addEventListener("submit", async event => {
   event.preventDefault();
-  if (!supabase) {
-    $("authMessage").textContent = "Erreur : Supabase n'est pas initialisé.";
+  if (!supabaseClient) {
+    $("authMessage").textContent = "Erreur : Impossible de contacter Supabase.";
     return;
   }
 
   const email = $("email").value.trim();
   const password = $("password").value;
-  $("authMessage").textContent = "Connexion en cours...";
+  $("authMessage").textContent = "Traitement en cours...";
 
   if (mode === "register") {
     const fullName = $("fullName").value.trim();
@@ -603,7 +597,7 @@ $("authForm").addEventListener("submit", async event => {
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabaseClient.auth.signUp({
       email: email,
       password: password,
       options: { data: { full_name: fullName } }
@@ -612,10 +606,10 @@ $("authForm").addEventListener("submit", async event => {
     if (error) {
       $("authMessage").textContent = "Erreur : " + error.message;
     } else {
-      $("authMessage").textContent = "Compte créé avec succès ! Vous pouvez vous connecter.";
+      $("authMessage").textContent = "Compte créé ! Vous pouvez maintenant vous connecter.";
     }
   } else {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
       email: email,
       password: password
     });
@@ -633,20 +627,20 @@ async function loadUserDataAndEnterApp(user) {
   currentUser.id = user.id;
 
   // Récupérer le profil
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseClient
     .from('profiles')
     .select('full_name')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   currentUser.name = profile?.full_name || user.email.split("@")[0];
 
   // Récupérer la carte de fidélité
-  const { data: loyalty } = await supabase
+  const { data: loyalty } = await supabaseClient
     .from('loyalty_cards')
     .select('points, qr_token')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   if (loyalty) {
     loyaltyData.points = loyalty.points;
@@ -654,10 +648,10 @@ async function loadUserDataAndEnterApp(user) {
   }
 
   // Récupérer les événements et offres
-  const { data: evs } = await supabase.from('events').select('*').eq('is_published', true);
+  const { data: evs } = await supabaseClient.from('events').select('*').eq('is_published', true);
   if (evs) eventsList = evs;
 
-  const { data: offs } = await supabase.from('offers').select('*').eq('is_published', true);
+  const { data: offs } = await supabaseClient.from('offers').select('*').eq('is_published', true);
   if (offs) offersList = offs;
 
   $("authScreen").classList.add("hidden");
@@ -668,7 +662,7 @@ async function loadUserDataAndEnterApp(user) {
 }
 
 $("logoutBtn").addEventListener("click", async () => {
-  if (supabase) await supabase.auth.signOut();
+  if (supabaseClient) await supabaseClient.auth.signOut();
   $("appScreen").classList.add("hidden");
   $("authScreen").classList.remove("hidden");
   $("authMessage").textContent = "Vous avez été déconnecté.";
@@ -776,9 +770,9 @@ function renderPage(page) {
   }
 }
 
-// Vérifier si une session est active au chargement
-if (supabase) {
-  supabase.auth.getSession().then(({ data: { session } }) => {
+// Vérifier la session au chargement
+if (supabaseClient) {
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (session) {
       loadUserDataAndEnterApp(session.user);
     }
