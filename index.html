@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#AD7966">
-<title>Flamingo Resto Café | VIP, Points & PWA</title>
+<title>Flamingo Resto Café | Fidélité, Tampons & PWA</title>
 
 <!-- Configuration PWA -->
 <link rel="manifest" href="manifest.json">
@@ -152,7 +152,7 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
 .card h3 { font-size: 17px; margin: 8px 0; }
 .card p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0; }
 
-/* CARTE VIP & QR CODE */
+/* CARTE DE FIDÉLITÉ TAMPONS & QR CODE */
 .loyalty-container {
   background: linear-gradient(130deg, #704838, #AD7966 70%, #CBA18A);
   border-radius: 18px;
@@ -174,13 +174,15 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
   border-radius: 8px;
   display: inline-block;
 }
-
-/* BOUTIQUE DE POINTS */
-.points-banner {
-  background: linear-gradient(135deg, #865747, #AD7966);
-  color: white; padding: 22px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; max-width: 650px;
+.stamps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; max-width: 500px; }
+.stamp-box {
+  background: white; border: 2px dashed var(--terracotta-light); border-radius: 10px; height: 65px;
+  display: grid; place-items: center; font-size: 22px; font-weight: bold; color: var(--muted);
 }
-.points-value { font-size: 32px; font-weight: bold; }
+.stamp-box.filled { background: var(--beige); border: 2px solid var(--terracotta); color: var(--terracotta-dark); }
+.stamp-box.gift { background: linear-gradient(135deg, #AD7966, #865747); color: white; border: 2px solid #865747; }
+
+/* BOUTIQUE MAGASIN */
 .rewards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; max-width: 650px; margin-top: 15px; }
 .reward-card { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; text-align: center; }
 .reward-card h4 { margin: 10px 0 5px; color: var(--terracotta-dark); }
@@ -299,9 +301,9 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
       <button class="nav-btn active" data-page="home">🏠 Accueil</button>
       <button class="nav-btn" data-page="events">🎶 Soirées</button>
       <button class="nav-btn" data-page="offers">✨ Offres</button>
-      <button class="nav-btn" data-page="loyalty">💳 Carte VIP & Discount</button>
-      <button class="nav-btn" data-page="rewards">🎁 Boutique Points</button>
-      <button class="nav-btn" data-page="games">🎡 Roue à Points</button>
+      <button class="nav-btn" data-page="loyalty">💳 Carte Fidélité (-20%)</button>
+      <button class="nav-btn" data-page="rewards">🎁 Magasin Cadeaux</button>
+      <button class="nav-btn" data-page="games">🎡 Roue de la Chance</button>
       <button class="nav-btn" data-page="profile">👤 Mon Profil</button>
     </nav>
     <main id="mainContent" class="content"></main>
@@ -326,7 +328,7 @@ let currentUser = { name: "Membre Flamingo", email: "", id: "" };
 let activePage = "home";
 let eventsList = [];
 let offersList = [];
-let userPoints = 0;
+let loyaltyVisits = 0;
 let loyaltyQrToken = "";
 let html5QrCode = null;
 
@@ -421,7 +423,7 @@ async function loadUserDataAndEnterApp(user) {
     .maybeSingle();
 
   if (loyalty) {
-    userPoints = loyalty.points || 0;
+    loyaltyVisits = loyalty.points || 0; // On utilise la colonne points pour stocker le nombre de tampons (0 à 6)
     loyaltyQrToken = loyalty.qr_token || "";
   }
 
@@ -519,8 +521,8 @@ async function renderPage(page) {
         <div>
           <small>🦩 Flamingo يا مدللتنا 🦩</small>
           <h1>Votre moment,<br>votre plaisir.</h1>
-          <p>Bonjour ${escapeHTML(currentUser.name)} ! Vous avez <strong>${userPoints} points</strong> fidélité.</p>
-          <button class="primary" onclick="goPage('rewards')">Voir la Boutique Points</button>
+          <p>Bonjour ${escapeHTML(currentUser.name)} ! Présentez votre carte à la caisse pour obtenir <strong>20% de réduction</strong>.</p>
+          <button class="primary" onclick="goPage('loyalty')">Voir ma Carte & QR Code</button>
         </div>
         <div class="hero-symbol">☕</div>
       </section>
@@ -545,21 +547,40 @@ async function renderPage(page) {
       <div class="section-heading"><h2>Offres Flamingo Resto Café</h2></div>
       <div class="cards">${offersList.map(card).join("") || '<p class="muted">Aucune offre disponible actuellement.</p>'}</div>`;
   } else if (page === "loyalty") {
+    let stampsHTML = "";
+    for (let i = 1; i <= 6; i++) {
+      const isFilled = i <= loyaltyVisits;
+      const isGift = i === 6;
+      let cssClass = isGift ? "stamp-box gift" : (isFilled ? "stamp-box filled" : "stamp-box");
+      let content = isGift ? "☕" : (isFilled ? "🦩" : i);
+      stampsHTML += `<div class="${cssClass}" title="Tampon ${i}">${content}</div>`;
+    }
+
+    let statusMsg = loyaltyVisits >= 6 
+      ? "🎉 <strong>Félicitations !</strong> Vous avez complété vos 6 tampons. Demandez votre café gratuit à la caisse !" 
+      : `Il vous reste ${6 - loyaltyVisits} tampon(s) pour obtenir votre café gratuit !`;
+
     main.innerHTML = `
-      <div class="section-heading"><h2>Carte VIP & Code QR Discount</h2></div>
+      <div class="section-heading"><h2>Carte de Fidélité & Discount 20%</h2></div>
       
       <div class="loyalty-container">
-        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ - CARTE MEMBRE VIP</div>
+        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ - CARTE FIDÉLITÉ</div>
         <h2>${escapeHTML(currentUser.name)}</h2>
-        <p style="font-size: 13px; color: #FFE8DC; margin: 5px 0 15px;">Présentez ce QR code au comptoir pour bénéficier de vos réductions (Discount) !</p>
+        <p style="font-size: 14px; color: #FFE8DC; margin: 8px 0; font-weight: bold;">⚡ DISCOUNT DE 20% À LA CAISSE SUR PRÉSENTATION DU QR CODE</p>
         
         <div class="loyalty-bottom">
           <div>
-            <div style="font-size:12px">MES POINTS</div>
-            <div class="points" style="font-size: 26px; font-weight: bold;">${userPoints} Pts</div>
+            <div style="font-size:12px">TAMPONS (6 MAX)</div>
+            <div style="font-size: 24px; font-weight: bold;">${loyaltyVisits} / 6 🦩</div>
           </div>
           <div class="qr-display" id="qrcode"></div>
         </div>
+      </div>
+
+      <div class="profile-box" style="max-width:600px;">
+        <h3>Progression vers le Café Gratuit</h3>
+        <div class="stamps-grid">${stampsHTML}</div>
+        <div class="notice">${statusMsg}</div>
       </div>`;
 
     setTimeout(() => {
@@ -576,54 +597,42 @@ async function renderPage(page) {
 
   } else if (page === "rewards") {
     main.innerHTML = `
-      <div class="section-heading"><h2>Boutique des Points & Récompenses</h2></div>
+      <div class="section-heading"><h2>Magasin Cadeaux Flamingo</h2></div>
       
-      <div class="points-banner">
-        <div>
-          <div style="font-size:12px">VOTRE SOLDE ACTUEL</div>
-          <div class="points-value">${userPoints} Points</div>
-        </div>
-        <div>🎁 Échangez vos points contre des cadeaux !</div>
-      </div>
-
       <div class="rewards-grid">
         <div class="reward-card">
           <div style="font-size: 32px">☕</div>
           <h4>Café Gratuit</h4>
-          <p>50 Points</p>
-          <button class="primary full" onclick="redeemReward(50, 'Café Gratuit')">Échanger</button>
+          <p>Offert à la fin de votre carte de fidélité (6 tampons)</p>
         </div>
         <div class="reward-card">
           <div style="font-size: 32px">🥐</div>
-          <h4>Café + Croissant</h4>
-          <p>100 Points</p>
-          <button class="primary full" onclick="redeemReward(100, 'Café + Croissant Gratuit')">Échanger</button>
+          <h4>Croissant Offert</h4>
+          <p>À découvrir via la Roue de la Chance</p>
         </div>
         <div class="reward-card">
-          <div style="font-size: 32px">🦩</div>
-          <h4>Petit-Déj Flamingo</h4>
-          <p>500 Points</p>
-          <button class="primary full" onclick="redeemReward(500, 'Petit-Déjeuner Flamingo Offert')">Échanger</button>
+          <div style="font-size: 32px">🍹</div>
+          <h4>Cocktail -50%</h4>
+          <p>Récompense spéciale Roue de la Chance</p>
         </div>
-      </div>
-      <div id="rewardResult" class="notice hidden" style="margin-top:20px; max-width:650px;"></div>`;
+      </div>`;
   } else if (page === "games") {
     main.innerHTML = `
-      <div class="section-heading"><h2>Roue de la Chance - Gagnez des Points 🎡</h2></div>
+      <div class="section-heading"><h2>Roue de la Chance - Lucky Wheel 🎡</h2></div>
       <div class="wheel-container">
-        <p class="muted">Tournez la roue <strong>1 seule fois par jour</strong> pour gagner des points !</p>
+        <p class="muted">Tournez la roue <strong>1 seule fois par jour</strong> pour gagner une surprise !</p>
         
         <div class="wheel-wrapper">
           <div class="wheel-pointer"></div>
           <svg class="wheel-svg-box" id="wheelSvg" viewBox="0 0 200 200">
             <path d="M 100,100 L 100,0 A 100,100 0 0,1 200,100 Z" fill="#865747" />
-            <text x="140" y="60" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(45, 140, 60)">5 PT</text>
+            <text x="135" y="60" fill="#ffffff" font-size="11" font-weight="bold" transform="rotate(45, 135, 60)">☕ Café</text>
             <path d="M 100,100 L 200,100 A 100,100 0 0,1 100,200 Z" fill="#AD7966" />
-            <text x="135" y="145" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(135, 135, 145)">10 PT</text>
+            <text x="130" y="145" fill="#ffffff" font-size="10" font-weight="bold" transform="rotate(135, 130, 145)">🥐 Croissant</text>
             <path d="M 100,100 L 100,200 A 100,100 0 0,1 0,100 Z" fill="#C49A83" />
-            <text x="55" y="145" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(225, 55, 145)">VIDE</text>
+            <text x="50" y="145" fill="#ffffff" font-size="10" font-weight="bold" transform="rotate(225, 50, 145)">🍹 Cocktail</text>
             <path d="M 100,100 L 0,100 A 100,100 0 0,1 100,0 Z" fill="#684234" />
-            <text x="55" y="60" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(315, 55, 60)">15 PT</text>
+            <text x="50" y="60" fill="#ffffff" font-size="10" font-weight="bold" transform="rotate(315, 50, 60)">🎉 Dommage</text>
           </svg>
           <div class="wheel-center-btn">🦩</div>
         </div>
@@ -640,8 +649,8 @@ async function renderPage(page) {
         <input class="field" value="${escapeHTML(currentUser.name)}" readonly>
         <label>Adresse e-mail</label>
         <input class="field" value="${escapeHTML(currentUser.email)}" readonly>
-        <label>Solde de points fidélité</label>
-        <input class="field" value="${userPoints} Points" readonly style="font-weight:bold; color:var(--terracotta-dark);">
+        <label>Avantage Fidélité</label>
+        <input class="field" value="Discount 20% à la caisse + 6 Tampons = Café Gratuit" readonly style="font-weight:bold; color:var(--terracotta-dark);">
       </div>`;
   } else if (page === "admin") {
     if (currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -663,21 +672,21 @@ async function renderPage(page) {
         </div>
         <div class="stat-card">
           <div class="muted">Gestion</div>
-          <div class="stat-number">Points & Médias</div>
+          <div class="stat-number">Tampons & QR</div>
         </div>
       </div>
 
-      <!-- SCANNER & VALIDATION -->
+      <!-- SCANNER & VALIDATION DE DISCOUNT / TAMPON -->
       <div class="scan-box">
-        <h3>📷 Scanner le QR Code client pour valider la visite</h3>
-        <p class="muted">Scannez le QR code de la carte client pour valider son passage, lui ajouter +10 points et enregistrer sa visite.</p>
+        <h3>📷 Scanner le QR Code client (-20% & Tampon +1)</h3>
+        <p class="muted">Scannez le QR code pour valider le discount de 20% et ajouter un tampon Flamingo (le 6ème offre un café gratuit puis réinitialise la carte).</p>
         
         <div id="reader" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
         <button class="outline full" id="startScanBtn" onclick="startCameraScan()" style="margin-bottom: 15px;">Démarrer la caméra</button>
 
         <div style="display: flex; gap: 10px;">
           <input class="field" id="scanInput" placeholder="Ou saisissez le Token ID client ici...">
-          <button class="primary" onclick="searchAndValidateMember($('scanInput').value.trim())">Valider Visite (+10 pts)</button>
+          <button class="primary" onclick="searchAndValidateMember($('scanInput').value.trim())">Valider & Tamponner</button>
         </div>
 
         <div id="scanResult" class="result-card hidden"></div>
@@ -832,32 +841,6 @@ async function deleteItem(table, id) {
   }
 }
 
-// BOUTIQUE DE POINTS (DÉBIT AUTOMATIQUE)
-async function redeemReward(cost, rewardName) {
-  const res = $("rewardResult");
-  res.classList.remove("hidden");
-
-  if (userPoints < cost) {
-    res.innerHTML = `❌ <strong>Solde insuffisant !</strong> Vous avez ${userPoints} points, il vous en faut ${cost} pour ce cadeau.`;
-    return;
-  }
-
-  userPoints -= cost;
-
-  const { error } = await supabaseClient
-    .from('loyalty_cards')
-    .update({ points: userPoints })
-    .eq('user_id', currentUser.id);
-
-  if (error) {
-    res.innerHTML = `❌ Erreur lors du débit des points. Réessayez.`;
-    userPoints += cost;
-    return;
-  }
-
-  res.innerHTML = `🎉 <strong>Félicitations !</strong> Vous avez échangé ${cost} points contre : <strong>${rewardName}</strong>. Votre nouveau solde est de <strong>${userPoints} points</strong>. Présentez cet écran au comptoir !`;
-}
-
 // HISTORIQUE DES VISITES
 async function loadVisitsHistory() {
   const tbody = $("historyTableBody");
@@ -883,13 +866,13 @@ async function loadVisitsHistory() {
       <tr>
         <td><strong>${dateFormatted}</strong> à ${timeFormatted}</td>
         <td>${escapeHTML(clientName)}</td>
-        <td><span style="color:var(--success); font-weight:bold;">Visite Validée (+10 pts)</span></td>
+        <td><span style="color:var(--success); font-weight:bold;">Discount 20% & Tampon Validés</span></td>
       </tr>
     `;
   }).join("");
 }
 
-// SCANNER & VALIDATION DE VISITE (+10 PTS)
+// SCANNER & VALIDATION DE TAMPON (+1) ET RESET À 6
 function startCameraScan() {
   const btn = $("startScanBtn");
   btn.textContent = "Caméra active...";
@@ -924,7 +907,7 @@ async function searchAndValidateMember(token) {
   }
 
   res.classList.remove("hidden");
-  res.innerHTML = "Vérification et enregistrement de la visite...";
+  res.innerHTML = "Vérification et validation du discount...";
 
   const { data: card, error } = await supabaseClient
     .from('loyalty_cards')
@@ -937,13 +920,20 @@ async function searchAndValidateMember(token) {
     return;
   }
 
-  const addedPoints = 10;
-  const newPoints = (card.points || 0) + addedPoints;
+  let currentStamps = card.points || 0;
+  currentStamps += 1;
+  const isGift = currentStamps >= 6;
 
   await supabaseClient.from('visits').insert({ user_id: card.user_id });
-  await supabaseClient.from('loyalty_cards').update({ points: newPoints }).eq('id', card.id);
 
-  res.innerHTML = `✅ <strong>Visite enregistrée avec succès !</strong><br>Client : <strong>${escapeHTML(card.profiles?.full_name)}</strong> (+10 pts ajoutés, Nouveau solde : ${newPoints} pts).`;
+  const newStampsCount = isGift ? 0 : currentStamps;
+  await supabaseClient.from('loyalty_cards').update({ points: newStampsCount }).eq('id', card.id);
+
+  let msg = isGift 
+    ? `🎉 <strong>Félicitations !</strong> C'est le 6ème tampon pour <strong>${escapeHTML(card.profiles?.full_name)}</strong>. <strong>Offrez-lui son café gratuit !</strong> La carte a été réinitialisée à 0.`
+    : `✅ <strong>Discount de 20% appliqué !</strong> Tampon ajouté pour <strong>${escapeHTML(card.profiles?.full_name)}</strong> (<strong>${currentStamps}/6</strong> tampons).`;
+
+  res.innerHTML = msg;
 
   loadVisitsHistory();
   supabaseClient.from('visits').select('*', { count: 'exact', head: true }).then(({ count }) => {
@@ -951,10 +941,10 @@ async function searchAndValidateMember(token) {
   });
 }
 
-// ROULETTE À POINTS
+// ROULETTE DE LA CHANCE
 let wheelRotation = 0;
 
-async function spinWheel() {
+function spinWheel() {
   const wheelSvg = $("wheelSvg");
   const btn = $("spinBtn");
   const resultBox = $("wheelResult");
@@ -964,7 +954,7 @@ async function spinWheel() {
   const lastPlayedDate = localStorage.getItem(lastPlayedKey);
 
   if (lastPlayedDate === today) {
-    resultBox.innerHTML = "⏳ <strong>Vous avez déjà tourné la roue aujourd'hui !</strong> Revenez demain pour tenter de gagner de nouveaux points 😉";
+    resultBox.innerHTML = "⏳ <strong>Vous avez déjà tourné la roue aujourd'hui !</strong> Revenez demain pour tenter votre chance 😉";
     resultBox.classList.remove("hidden");
     return;
   }
@@ -973,10 +963,10 @@ async function spinWheel() {
   resultBox.classList.add("hidden");
 
   const prizes = [
-    { text: "🎉 Bravo ! Vous avez gagné 15 points !", points: 15, angle: 45 },
-    { text: "🌟 Super ! Vous avez gagné 10 points !", points: 10, angle: 225 },
-    { text: "☕ Pas mal ! Vous avez gagné 5 points !", points: 5, angle: 315 },
-    { text: "😢 Dommage ! Pas de points cette fois-ci.", points: 0, angle: 135 }
+    { text: "☕ Félicitations ! Vous avez gagné un Café offert !", angle: 315 },
+    { text: "🥐 Félicitations ! Vous avez gagné un Croissant offert !", angle: 225 },
+    { text: "🍹 Félicitations ! Vous avez gagné un Cocktail à -50% !", angle: 135 },
+    { text: "🎉 Dommage ! Retentez votre chance demain !", angle: 45 }
   ];
 
   const selectedPrize = prizes[Math.floor(Math.random() * prizes.length)];
@@ -985,18 +975,10 @@ async function spinWheel() {
   
   wheelSvg.style.transform = "rotate(" + wheelRotation + "deg)";
 
-  setTimeout(async () => {
+  setTimeout(() => {
     localStorage.setItem(lastPlayedKey, today);
 
-    if (selectedPrize.points > 0) {
-      userPoints += selectedPrize.points;
-      await supabaseClient
-        .from('loyalty_cards')
-        .update({ points: userPoints })
-        .eq('user_id', currentUser.id);
-    }
-
-    resultBox.innerHTML = "🎁 <strong>Résultat :</strong> " + selectedPrize.text + ` (Nouveau solde : ${userPoints} pts)`;
+    resultBox.innerHTML = "🎁 <strong>Résultat :</strong> " + selectedPrize.text + "<br><small>Montrez cet écran au comptoir pour en profiter !</small>";
     resultBox.classList.remove("hidden");
     btn.disabled = false;
   }, 4000);
