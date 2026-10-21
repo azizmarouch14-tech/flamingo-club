@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#AD7966">
-<title>Flamingo Resto Café | Fidélité, Admin & Gestion</title>
+<title>Flamingo Resto Café | Fidélité, Admin & Médias</title>
 
 <!-- SDK Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -142,11 +142,12 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
 .muted { color: var(--muted); font-size: 14px; line-height: 1.6; }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
 .card { background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; text-align: left; position: relative; }
-.card-art { height: 135px; display: grid; place-items: center; font-size: 48px; background: linear-gradient(135deg, #E4C7B6, #F6EAE0); }
+.card-art { height: 160px; display: grid; place-items: center; background: linear-gradient(135deg, #E4C7B6, #F6EAE0); overflow: hidden; }
+.card-art img { width: 100%; height: 100%; object-fit: cover; }
 .card-body { padding: 17px; }
 .tag { display: inline-block; background: var(--beige); color: var(--terracotta-dark); padding: 5px 9px; border-radius: 20px; font-size: 10px; font-weight: bold; }
-.card h3 { font-size: 17px; }
-.card p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.card h3 { font-size: 17px; margin: 8px 0; }
+.card p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0; }
 
 /* CARTE DE FIDÉLITÉ & QR CODE CLIENT */
 .loyalty-container {
@@ -164,37 +165,11 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
   align-items: center;
   gap: 20px;
 }
-.points { font-size: 32px; font-weight: bold; }
 .qr-display {
   background: white;
   padding: 10px;
   border-radius: 8px;
   display: inline-block;
-}
-
-/* BOUTIQUE DE POINTS */
-.points-banner {
-  background: linear-gradient(135deg, #865747, #AD7966);
-  color: white; padding: 22px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; max-width: 650px;
-}
-.points-value { font-size: 32px; font-weight: bold; }
-.rewards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; max-width: 650px; margin-top: 15px; }
-.reward-card { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; text-align: center; }
-.reward-card h4 { margin: 10px 0 5px; color: var(--terracotta-dark); }
-.reward-card p { font-size: 12px; color: var(--muted); margin-bottom: 15px; }
-
-/* ROULETTE SVG */
-.wheel-wrapper { position: relative; width: 290px; height: 290px; margin: 20px auto; }
-.wheel-pointer {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 26px solid #d9534f;
-  z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-}
-.wheel-svg-box { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 8px 25px rgba(0,0,0,0.18); transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1); }
-.wheel-center-btn {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 55px; height: 55px; background: white; border-radius: 50%; border: 4px solid var(--terracotta-dark);
-  z-index: 5; display: grid; place-items: center; font-size: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 /* HISTORIQUE TABLE */
@@ -212,7 +187,6 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
 }
 .result-card { background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; text-align: left; }
 
-.wheel-container { text-align: center; background: white; border: 1px solid var(--border); border-radius: 15px; padding: 30px; max-width: 500px; margin: auto; }
 .notice { background: #F4E8DE; border-radius: 10px; padding: 15px; margin: 20px 0; color: #755340; font-size: 13px; line-height: 1.7; text-align: left; }
 .profile-box { background: white; border: 1px solid var(--border); border-radius: 15px; padding: 25px; max-width: 650px; text-align: left; }
 .footer { padding: 25px; text-align: center; font-size: 12px; color: var(--muted); }
@@ -296,9 +270,7 @@ label { display: block; font-size: 13px; font-weight: bold; margin: 15px 0 7px; 
       <button class="nav-btn active" data-page="home">🏠 Accueil</button>
       <button class="nav-btn" data-page="events">🎶 Soirées</button>
       <button class="nav-btn" data-page="offers">✨ Offres</button>
-      <button class="nav-btn" data-page="loyalty">💳 Carte Fidélité</button>
-      <button class="nav-btn" data-page="rewards">🎁 Boutique Points</button>
-      <button class="nav-btn" data-page="games">🎡 Roue de la Chance</button>
+      <button class="nav-btn" data-page="loyalty">💳 Carte VIP & Discount</button>
       <button class="nav-btn" data-page="profile">👤 Mon Profil</button>
     </nav>
     <main id="mainContent" class="content"></main>
@@ -323,7 +295,6 @@ let currentUser = { name: "Membre Flamingo", email: "", id: "" };
 let activePage = "home";
 let eventsList = [];
 let offersList = [];
-let userPoints = 0;
 let loyaltyQrToken = "";
 let html5QrCode = null;
 
@@ -413,12 +384,11 @@ async function loadUserDataAndEnterApp(user) {
 
   const { data: loyalty } = await supabaseClient
     .from('loyalty_cards')
-    .select('points, qr_token')
+    .select('qr_token')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (loyalty) {
-    userPoints = loyalty.points || 0;
     loyaltyQrToken = loyalty.qr_token || "";
   }
 
@@ -472,9 +442,13 @@ function escapeHTML(value) {
 }
 
 function card(item) {
+  let imgHtml = item.image_url 
+    ? `<img src="${escapeHTML(item.image_url)}" alt="${escapeHTML(item.title)}">` 
+    : `✨`;
+
   return `
     <article class="card">
-      <div class="card-art">✨</div>
+      <div class="card-art">${imgHtml}</div>
       <div class="card-body">
         <span class="tag">FLAMINGO</span>
         <h3>${escapeHTML(item.title)}</h3>
@@ -512,8 +486,8 @@ async function renderPage(page) {
         <div>
           <small>🦩 Flamingo يا مدللتنا 🦩</small>
           <h1>Votre moment,<br>votre plaisir.</h1>
-          <p>Bonjour ${escapeHTML(currentUser.name)} ! Vous avez <strong>${userPoints} points</strong> fidélité.</p>
-          <button class="primary" onclick="goPage('loyalty')">Voir ma Carte & QR Code</button>
+          <p>Bonjour ${escapeHTML(currentUser.name)} ! Profitez de vos avantages exclusifs chez Flamingo Resto Café.</p>
+          <button class="primary" onclick="goPage('loyalty')">Voir ma Carte VIP & QR Code</button>
         </div>
         <div class="hero-symbol">☕</div>
       </section>
@@ -522,7 +496,13 @@ async function renderPage(page) {
         <div><h2>Soirées</h2><p class="muted">Les plus beaux moments commencent ici.</p></div>
         <button class="outline" onclick="goPage('events')">Voir tout</button>
       </div>
-      <div class="cards">${eventsList.slice(0,2).map(card).join("") || '<p class="muted">Aucune soirée pour le moment.</p>'}</div>`;
+      <div class="cards">${eventsList.slice(0,2).map(card).join("") || '<p class="muted">Aucune soirée pour le moment.</p>'}</div>
+
+      <div class="section-heading">
+        <div><h2>Offres</h2><p class="muted">Des plaisirs à partager.</p></div>
+        <button class="outline" onclick="goPage('offers')">Voir tout</button>
+      </div>
+      <div class="cards">${offersList.slice(0,2).map(card).join("") || '<p class="muted">Aucune offre pour le moment.</p>'}</div>`;
   } else if (page === "events") {
     main.innerHTML = `
       <div class="section-heading"><h2>Soirées Flamingo Resto Café</h2></div>
@@ -533,17 +513,17 @@ async function renderPage(page) {
       <div class="cards">${offersList.map(card).join("") || '<p class="muted">Aucune offre disponible actuellement.</p>'}</div>`;
   } else if (page === "loyalty") {
     main.innerHTML = `
-      <div class="section-heading"><h2>Carte de Fidélité & QR Code Discount</h2></div>
+      <div class="section-heading"><h2>Carte VIP & Code QR Discount</h2></div>
       
       <div class="loyalty-container">
-        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ - VIP CARD</div>
+        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ - CARTE MEMBRE VIP</div>
         <h2>${escapeHTML(currentUser.name)}</h2>
-        <p style="font-size: 13px; color: #FFE8DC; margin: 5px 0 15px;">Présentez ce QR code au comptoir pour valider vos réductions et visites !</p>
+        <p style="font-size: 13px; color: #FFE8DC; margin: 5px 0 15px;">Présentez ce QR code au comptoir pour bénéficier de vos réductions (Discount) !</p>
         
         <div class="loyalty-bottom">
           <div>
-            <div style="font-size:12px">MES POINTS</div>
-            <div class="points">${userPoints} Pts</div>
+            <div style="font-size:12px">STATUT</div>
+            <div style="font-size: 22px; font-weight: bold;">Membre VIP 🦩</div>
           </div>
           <div class="qr-display" id="qrcode"></div>
         </div>
@@ -561,63 +541,6 @@ async function renderPage(page) {
       }
     }, 100);
 
-  } else if (page === "rewards") {
-    main.innerHTML = `
-      <div class="section-heading"><h2>Boutique des Points & Récompenses</h2></div>
-      
-      <div class="points-banner">
-        <div>
-          <div style="font-size:12px">VOTRE SOLDE ACTUEL</div>
-          <div class="points-value">${userPoints} Points</div>
-        </div>
-        <div>🎁 Échangez vos points contre des cadeaux !</div>
-      </div>
-
-      <div class="rewards-grid">
-        <div class="reward-card">
-          <div style="font-size: 32px">☕</div>
-          <h4>Café Gratuit</h4>
-          <p>50 Points</p>
-          <button class="primary full" onclick="redeemReward(50, 'Café Gratuit')">Échanger</button>
-        </div>
-        <div class="reward-card">
-          <div style="font-size: 32px">🥐</div>
-          <h4>Café + Croissant</h4>
-          <p>100 Points</p>
-          <button class="primary full" onclick="redeemReward(100, 'Café + Croissant Gratuit')">Échanger</button>
-        </div>
-        <div class="reward-card">
-          <div style="font-size: 32px">🦩</div>
-          <h4>Petit-Déj Flamingo</h4>
-          <p>500 Points</p>
-          <button class="primary full" onclick="redeemReward(500, 'Petit-Déjeuner Flamingo Offert')">Échanger</button>
-        </div>
-      </div>
-      <div id="rewardResult" class="notice hidden" style="margin-top:20px; max-width:650px;"></div>`;
-  } else if (page === "games") {
-    main.innerHTML = `
-      <div class="section-heading"><h2>Roue de la Chance - Gagnez des Points 🎡</h2></div>
-      <div class="wheel-container">
-        <p class="muted">Tournez la roue <strong>1 seule fois par jour</strong> pour gagner des points !</p>
-        
-        <div class="wheel-wrapper">
-          <div class="wheel-pointer"></div>
-          <svg class="wheel-svg-box" id="wheelSvg" viewBox="0 0 200 200">
-            <path d="M 100,100 L 100,0 A 100,100 0 0,1 200,100 Z" fill="#865747" />
-            <text x="140" y="60" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(45, 140, 60)">5 PT</text>
-            <path d="M 100,100 L 200,100 A 100,100 0 0,1 100,200 Z" fill="#AD7966" />
-            <text x="135" y="145" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(135, 135, 145)">10 PT</text>
-            <path d="M 100,100 L 100,200 A 100,100 0 0,1 0,100 Z" fill="#C49A83" />
-            <text x="55" y="145" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(225, 55, 145)">VIDE</text>
-            <path d="M 100,100 L 0,100 A 100,100 0 0,1 100,0 Z" fill="#684234" />
-            <text x="55" y="60" fill="#ffffff" font-size="12" font-weight="bold" transform="rotate(315, 55, 60)">15 PT</text>
-          </svg>
-          <div class="wheel-center-btn">🦩</div>
-        </div>
-
-        <button class="primary" id="spinBtn" onclick="spinWheel()">Tourner la roue</button>
-        <div id="wheelResult" class="notice hidden" style="margin-top:20px"></div>
-      </div>`;
   } else if (page === "profile") {
     main.innerHTML = `
       <div class="section-heading"><h2>Mon Profil</h2></div>
@@ -627,8 +550,8 @@ async function renderPage(page) {
         <input class="field" value="${escapeHTML(currentUser.name)}" readonly>
         <label>Adresse e-mail</label>
         <input class="field" value="${escapeHTML(currentUser.email)}" readonly>
-        <label>Solde de points fidélité</label>
-        <input class="field" value="${userPoints} Points" readonly style="font-weight:bold; color:var(--terracotta-dark);">
+        <label>Type de Compte</label>
+        <input class="field" value="Membre VIP Flamingo Resto Café" readonly style="font-weight:bold; color:var(--terracotta-dark);">
       </div>`;
   } else if (page === "admin") {
     if (currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -645,38 +568,40 @@ async function renderPage(page) {
           <div class="stat-number" id="statMembers">-</div>
         </div>
         <div class="stat-card">
-          <div class="muted">Total Visites Validées</div>
+          <div class="muted">Total Visites / Discounts</div>
           <div class="stat-number" id="statVisits">-</div>
         </div>
         <div class="stat-card">
           <div class="muted">Gestion</div>
-          <div class="stat-number">Contenu & QR</div>
+          <div class="stat-number">Médias & QR</div>
         </div>
       </div>
 
-      <!-- SCANNER & VALIDATION -->
+      <!-- SCANNER & VALIDATION DE DISCOUNT -->
       <div class="scan-box">
-        <h3>📷 Valider une visite & Appliquer une réduction (Discount)</h3>
-        <p class="muted">Scannez le QR code de la carte client pour valider sa visite (+10 pts) et appliquer son discount.</p>
+        <h3>📷 Scanner le QR Code client pour appliquer la réduction</h3>
+        <p class="muted">Scannez le QR code de la carte client pour valider sa réduction et enregistrer sa visite dans l'historique.</p>
         
         <div id="reader" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
         <button class="outline full" id="startScanBtn" onclick="startCameraScan()" style="margin-bottom: 15px;">Démarrer la caméra</button>
 
         <div style="display: flex; gap: 10px;">
           <input class="field" id="scanInput" placeholder="Ou saisissez le Token ID client ici...">
-          <button class="primary" onclick="searchAndValidateMember($('scanInput').value.trim())">Valider Visite</button>
+          <button class="primary" onclick="searchAndValidateMember($('scanInput').value.trim())">Valider Discount</button>
         </div>
 
         <div id="scanResult" class="result-card hidden"></div>
       </div>
 
-      <!-- GESTION DES SOIRÉES ET OFFRES -->
+      <!-- GESTION DES SOIRÉES (AVEC URL IMAGE) -->
       <div class="admin-section">
         <h3>🎶 Ajouter / Modifier une Soirée</h3>
         <form id="eventForm" onsubmit="saveEvent(event)">
           <input type="hidden" id="eventId">
           <label>Titre de la soirée</label>
           <input class="field" id="eventTitle" placeholder="Ex: Soirée Live Acoustic" required>
+          <label>Lien de l'image (URL photo)</label>
+          <input class="field" id="eventImage" placeholder="Ex: https://exemple.com/image.jpg">
           <label>Description</label>
           <textarea class="field" id="eventDesc" placeholder="Détails de la soirée..." rows="2" required></textarea>
           <button class="primary full" type="submit">Enregistrer la Soirée</button>
@@ -684,12 +609,15 @@ async function renderPage(page) {
         <div style="margin-top: 20px;" id="adminEventsList"></div>
       </div>
 
+      <!-- GESTION DES OFFRES (AVEC URL IMAGE) -->
       <div class="admin-section">
         <h3>✨ Ajouter / Modifier une Offre</h3>
         <form id="offerForm" onsubmit="saveOffer(event)">
           <input type="hidden" id="offerId">
           <label>Titre de l'offre</label>
           <input class="field" id="offerTitle" placeholder="Ex: Menu Étudiant -20%" required>
+          <label>Lien de l'image (URL photo)</label>
+          <input class="field" id="offerImage" placeholder="Ex: https://exemple.com/image.jpg">
           <label>Description</label>
           <textarea class="field" id="offerDesc" placeholder="Détails de l'offre..." rows="2" required></textarea>
           <button class="primary full" type="submit">Enregistrer l'Offre</button>
@@ -706,7 +634,7 @@ async function renderPage(page) {
               <tr>
                 <th>Date & Heure</th>
                 <th>Nom du Client</th>
-                <th>Action / Points</th>
+                <th>Statut</th>
               </tr>
             </thead>
             <tbody id="historyTableBody">
@@ -716,7 +644,6 @@ async function renderPage(page) {
         </div>
       </div>`;
 
-    // Charger les stats et l'historique admin
     supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).then(({ count }) => {
       if ($('statMembers'))$('statMembers').textContent = count || 0;
     });
@@ -729,7 +656,7 @@ async function renderPage(page) {
   }
 }
 
-// GESTION DES SOIRÉES ET OFFRES (ADMIN)
+// GESTION DES SOIRÉES ET OFFRES AVEC IMAGES
 async function loadAdminManagementLists() {
   await loadContentData();
   
@@ -739,7 +666,7 @@ async function loadAdminManagementLists() {
       <div style="display:flex; justify-content:space-between; align-items:center; background:var(--cream); padding:10px 15px; border-radius:8px; margin-bottom:8px;">
         <div><strong>${escapeHTML(e.title)}</strong><br><small class="muted">${escapeHTML(e.description)}</small></div>
         <div style="display:flex; gap:8px;">
-          <button class="outline" onclick="editEvent('${e.id}', '${escapeHTML(e.title)}', '${escapeHTML(e.description)}')">Modifier</button>
+          <button class="outline" onclick="editEvent('${e.id}', '${escapeHTML(e.title)}', '${escapeHTML(e.description)}', '${escapeHTML(e.image_url || '')}')">Modifier</button>
           <button class="danger-btn" onclick="deleteItem('events', '${e.id}')">Supprimer</button>
         </div>
       </div>
@@ -752,7 +679,7 @@ async function loadAdminManagementLists() {
       <div style="display:flex; justify-content:space-between; align-items:center; background:var(--cream); padding:10px 15px; border-radius:8px; margin-bottom:8px;">
         <div><strong>${escapeHTML(o.title)}</strong><br><small class="muted">${escapeHTML(o.description)}</small></div>
         <div style="display:flex; gap:8px;">
-          <button class="outline" onclick="editOffer('${o.id}', '${escapeHTML(o.title)}', '${escapeHTML(o.description)}')">Modifier</button>
+          <button class="outline" onclick="editOffer('${o.id}', '${escapeHTML(o.title)}', '${escapeHTML(o.description)}', '${escapeHTML(o.image_url || '')}')">Modifier</button>
           <button class="danger-btn" onclick="deleteItem('offers', '${o.id}')">Supprimer</button>
         </div>
       </div>
@@ -764,21 +691,23 @@ async function saveEvent(e) {
   e.preventDefault();
   const id = $("eventId").value;
   const title = $("eventTitle").value;
+  const image_url = $("eventImage").value;
   const description = $("eventDesc").value;
 
   if (id) {
-    await supabaseClient.from('events').update({ title, description }).eq('id', id);
+    await supabaseClient.from('events').update({ title, image_url, description }).eq('id', id);
   } else {
-    await supabaseClient.from('events').insert({ title, description, is_published: true });
+    await supabaseClient.from('events').insert({ title, image_url, description, is_published: true });
   }
   $("eventForm").reset();
   $("eventId").value = "";
   loadAdminManagementLists();
 }
 
-function editEvent(id, title, desc) {
+function editEvent(id, title, desc, img) {
   $("eventId").value = id;
   $("eventTitle").value = title;
+  $("eventImage").value = img;
   $("eventDesc").value = desc;
 }
 
@@ -786,21 +715,23 @@ async function saveOffer(e) {
   e.preventDefault();
   const id = $("offerId").value;
   const title = $("offerTitle").value;
+  const image_url = $("offerImage").value;
   const description = $("offerDesc").value;
 
   if (id) {
-    await supabaseClient.from('offers').update({ title, description }).eq('id', id);
+    await supabaseClient.from('offers').update({ title, image_url, description }).eq('id', id);
   } else {
-    await supabaseClient.from('offers').insert({ title, description, is_published: true });
+    await supabaseClient.from('offers').insert({ title, image_url, description, is_published: true });
   }
   $("offerForm").reset();
   $("offerId").value = "";
   loadAdminManagementLists();
 }
 
-function editOffer(id, title, desc) {
+function editOffer(id, title, desc, img) {
   $("offerId").value = id;
   $("offerTitle").value = title;
+  $("offerImage").value = img;
   $("offerDesc").value = desc;
 }
 
@@ -836,13 +767,13 @@ async function loadVisitsHistory() {
       <tr>
         <td><strong>${dateFormatted}</strong> à ${timeFormatted}</td>
         <td>${escapeHTML(clientName)}</td>
-        <td><span style="color:var(--success); font-weight:bold;">Visite Validée (+10 pts / Discount)</span></td>
+        <td><span style="color:var(--success); font-weight:bold;">Réduction (Discount) Validée</span></td>
       </tr>
     `;
   }).join("");
 }
 
-// SCANNER & VALIDATION DE VISITE
+// SCANNER & VALIDATION DE DISCOUNT
 function startCameraScan() {
   const btn = $("startScanBtn");
   btn.textContent = "Caméra active...";
@@ -877,7 +808,7 @@ async function searchAndValidateMember(token) {
   }
 
   res.classList.remove("hidden");
-  res.innerHTML = "Vérification et enregistrement de la visite...";
+  res.innerHTML = "Vérification et enregistrement du discount...";
 
   const { data: card, error } = await supabaseClient
     .from('loyalty_cards')
@@ -890,96 +821,15 @@ async function searchAndValidateMember(token) {
     return;
   }
 
-  const addedPoints = 10;
-  const newPoints = (card.points || 0) + addedPoints;
-
-  // Enregistrer la visite (historique) et mettre à jour les points
+  // Enregistrer la visite / discount dans l'historique
   await supabaseClient.from('visits').insert({ user_id: card.user_id });
-  await supabaseClient.from('loyalty_cards').update({ points: newPoints }).eq('id', card.id);
 
-  res.innerHTML = `✅ <strong>Visite et Discount validés avec succès !</strong><br>Client : <strong>${escapeHTML(card.profiles?.full_name)}</strong><br>Points ajoutés : <strong>+${addedPoints} pts</strong> (Nouveau solde : ${newPoints} pts).`;
+  res.innerHTML = `✅ <strong>Réduction (Discount) validée avec succès !</strong><br>Client VIP : <strong>${escapeHTML(card.profiles?.full_name)}</strong>`;
 
   loadVisitsHistory();
   supabaseClient.from('visits').select('*', { count: 'exact', head: true }).then(({ count }) => {
     if ($('statVisits'))$('statVisits').textContent = count || 0;
   });
-}
-
-// BOUTIQUE DE POINTS
-async function redeemReward(cost, rewardName) {
-  const res = $("rewardResult");
-  res.classList.remove("hidden");
-
-  if (userPoints < cost) {
-    res.innerHTML = `❌ <strong>Solde insuffisant !</strong> Vous avez ${userPoints} points, il vous en faut ${cost} pour ce cadeau.`;
-    return;
-  }
-
-  userPoints -= cost;
-
-  const { error } = await supabaseClient
-    .from('loyalty_cards')
-    .update({ points: userPoints })
-    .eq('user_id', currentUser.id);
-
-  if (error) {
-    res.innerHTML = `❌ Erreur lors du débit des points. Réessayez.`;
-    userPoints += cost;
-    return;
-  }
-
-  res.innerHTML = `🎉 <strong>Félicitations !</strong> Vous avez échangé ${cost} points contre : <strong>${rewardName}</strong>. Votre nouveau solde est de <strong>${userPoints} points</strong>. Présentez cet écran au comptoir !`;
-}
-
-// ROUE DE LA CHANCE
-let wheelRotation = 0;
-
-async function spinWheel() {
-  const wheelSvg = $("wheelSvg");
-  const btn = $("spinBtn");
-  const resultBox = $("wheelResult");
-
-  const lastPlayedKey = "flamingo_wheel_" + currentUser.id;
-  const today = new Date().toISOString().split('T')[0];
-  const lastPlayedDate = localStorage.getItem(lastPlayedKey);
-
-  if (lastPlayedDate === today) {
-    resultBox.innerHTML = "⏳ <strong>Vous avez déjà tourné la roue aujourd'hui !</strong> Revenez demain pour tenter de gagner de nouveaux points 😉";
-    resultBox.classList.remove("hidden");
-    return;
-  }
-
-  btn.disabled = true;
-  resultBox.classList.add("hidden");
-
-  const prizes = [
-    { text: "🎉 Bravo ! Vous avez gagné 15 points !", points: 15, angle: 45 },
-    { text: "🌟 Super ! Vous avez gagné 10 points !", points: 10, angle: 225 },
-    { text: "☕ Pas mal ! Vous avez gagné 5 points !", points: 5, angle: 315 },
-    { text: "😢 Dommage ! Pas de points cette fois-ci.", points: 0, angle: 135 }
-  ];
-
-  const selectedPrize = prizes[Math.floor(Math.random() * prizes.length)];
-  const fullRounds = 5 * 360;
-  wheelRotation += fullRounds + selectedPrize.angle - (wheelRotation % 360);
-  
-  wheelSvg.style.transform = "rotate(" + wheelRotation + "deg)";
-
-  setTimeout(async () => {
-    localStorage.setItem(lastPlayedKey, today);
-
-    if (selectedPrize.points > 0) {
-      userPoints += selectedPrize.points;
-      await supabaseClient
-        .from('loyalty_cards')
-        .update({ points: userPoints })
-        .eq('user_id', currentUser.id);
-    }
-
-    resultBox.innerHTML = "🎁 <strong>Résultat :</strong> " + selectedPrize.text + ` (Nouveau solde : ${userPoints} pts)`;
-    resultBox.classList.remove("hidden");
-    btn.disabled = false;
-  }, 4000);
 }
 
 if (supabaseClient) {
