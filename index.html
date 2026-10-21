@@ -32,7 +32,7 @@
   --danger: #c0392b;
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -448,16 +448,36 @@ async function loadUserDataAndEnterApp(user) {
 
   currentUser.name = profile?.full_name || user.email.split("@")[0];
 
-  const { data: loyalty } = await supabaseClient
+  // Gestion robuste et automatique du qr_token pour éviter l'erreur "Client introuvable"
+  let { data: loyalty } = await supabaseClient
     .from('loyalty_cards')
-    .select('points, stamps, qr_token')
+    .select('id, points, stamps, qr_token')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (loyalty) {
+  const generatedToken = "FLAMINGO_" + user.id;
+
+  if (!loyalty) {
+    await supabaseClient.from('loyalty_cards').insert({
+      user_id: user.id,
+      points: 0,
+      stamps: 0,
+      qr_token: generatedToken
+    });
+    loyaltyStamps = 0;
+    userPoints = 0;
+    loyaltyQrToken = generatedToken;
+  } else {
+    if (!loyalty.qr_token) {
+      await supabaseClient.from('loyalty_cards')
+        .update({ qr_token: generatedToken })
+        .eq('id', loyalty.id);
+      loyaltyQrToken = generatedToken;
+    } else {
+      loyaltyQrToken = loyalty.qr_token;
+    }
     loyaltyStamps = loyalty.stamps !== undefined ? loyalty.stamps : 0;
     userPoints = loyalty.points || 0;
-    loyaltyQrToken = loyalty.qr_token || "";
   }
 
   await loadContentData();
@@ -990,7 +1010,6 @@ async function searchAndValidateMember(token) {
   currentStamps += 1;
   let isGift = currentStamps >= 6;
 
-  // Enregistrement dans l'historique journalier des visites
   await supabaseClient.from('visits').insert({ user_id: card.user_id });
 
   const newStampsCount = isGift ? 0 : currentStamps;
@@ -1004,7 +1023,7 @@ async function searchAndValidateMember(token) {
 
   loadVisitsHistory();
   supabaseClient.from('visits').select('*', { count: 'exact', head: true }).then(({ count }) => {
-    if ($('statVisits'))$('statVisits').textContent = count || 0;
+    if ($('statVisits')) $('statVisits').textContent = count || 0;
   });
 }
 
