@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#AD7966">
-<title>Flamingo Resto Café | Menu Drawer Mobile</title>
+<title>Flamingo Resto Café | Fidélité & QR Code VIP</title>
 
 <!-- Configuration PWA -->
 <link rel="manifest" href="manifest.json">
@@ -411,7 +411,7 @@ $("authForm").addEventListener("submit", async event => {
       return;
     }
 
-    const { error } = await supabaseClient.auth.signUp({
+    const { data, error } = await supabaseClient.auth.signUp({
       email: email,
       password: password,
       options: { data: { full_name: fullName } }
@@ -420,6 +420,16 @@ $("authForm").addEventListener("submit", async event => {
     if (error) {
       $("authMessage").textContent = "Erreur : " + error.message;
     } else {
+      // Création automatique de la carte fidélité avec QR token unique lié au compte
+      if (data.user) {
+        const uniqueToken = "FLAMINGO-" + Math.random().toString(36.substring(2, 12)).toUpperCase() + "-" + data.user.id.substring(0,6);
+        await supabaseClient.from('loyalty_cards').insert({
+          user_id: data.user.id,
+          stamps: 0,
+          points: 0,
+          qr_token: uniqueToken
+        });
+      }
       $("authMessage").textContent = "Compte créé avec succès ! Vous pouvez vous connecter.";
     }
   } else {
@@ -448,17 +458,27 @@ async function loadUserDataAndEnterApp(user) {
 
   currentUser.name = profile?.full_name || user.email.split("@")[0];
 
-  const { data: loyalty } = await supabaseClient
+  let { data: loyalty } = await supabaseClient
     .from('loyalty_cards')
     .select('points, stamps, qr_token')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (loyalty) {
-    loyaltyStamps = loyalty.stamps !== undefined ? loyalty.stamps : (loyalty.points || 0);
-    userPoints = loyalty.points || 0;
-    loyaltyQrToken = loyalty.qr_token || "";
+  // Si l'utilisateur n'a pas encore de carte, on lui en crée une liée à son compte
+  if (!loyalty) {
+    const uniqueToken = "FLAMINGO-" + Math.random().toString(36).substring(2, 10).toUpperCase() + "-" + user.id.substring(0,6);
+    await supabaseClient.from('loyalty_cards').insert({
+      user_id: user.id,
+      stamps: 0,
+      points: 0,
+      qr_token: uniqueToken
+    });
+    loyalty = { points: 0, stamps: 0, qr_token: uniqueToken };
   }
+
+  loyaltyStamps = loyalty.stamps !== undefined ? loyalty.stamps : (loyalty.points || 0);
+  userPoints = loyalty.points || 0;
+  loyaltyQrToken = loyalty.qr_token || "";
 
   await loadContentData();
 
@@ -539,7 +559,7 @@ async function goPage(page) {
     button.classList.toggle("active", button.dataset.page === page);
   });
   renderPage(page);
-  toggleDrawer(); // Ferme le tiroir automatiquement au clic
+  toggleDrawer();
 }
 
 async function renderPage(page) {
@@ -551,7 +571,7 @@ async function renderPage(page) {
         <div>
           <small>🦩 Flamingo يا مدللتنا 🦩</small>
           <h1>Votre moment,<br>votre plaisir.</h1>
-          <p>Bonjour ${escapeHTML(currentUser.name)} ! Vous avez <strong>${userPoints} points</strong> et <strong>${loyaltyStamps}/6 tampons</strong>.</p>
+          <p>Bonjour ${escapeHTML(currentUser.name)} ! Présentez votre carte à la caisse pour obtenir <strong>20% de réduction</strong>.</p>
           <button class="primary" onclick="goPage('loyalty')">Voir ma Carte & QR Code</button>
         </div>
         <div class="hero-symbol">☕</div>
@@ -594,7 +614,7 @@ async function renderPage(page) {
       <div class="section-heading"><h2>Carte de Fidélité & Discount 20%</h2></div>
       
       <div class="loyalty-container">
-        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ - CARTE FIDÉLITÉ</div>
+        <div style="font-size:12px; letter-spacing:2px">FLAMINGO RESTO CAFÉ - CARTE FIDÉLITÉ VIP</div>
         <h2>${escapeHTML(currentUser.name)}</h2>
         <p style="font-size: 14px; color: #FFE8DC; margin: 8px 0; font-weight: bold;">⚡ DISCOUNT DE 20% À LA CAISSE SUR PRÉSENTATION DU QR CODE</p>
         
@@ -693,6 +713,8 @@ async function renderPage(page) {
         <input class="field" value="${escapeHTML(currentUser.email)}" readonly>
         <label>Solde de points</label>
         <input class="field" value="${userPoints} Points" readonly style="font-weight:bold; color:var(--terracotta-dark);">
+        <label>Token QR Code Unique</label>
+        <input class="field" value="${escapeHTML(loyaltyQrToken)}" readonly style="font-family:monospace; font-size:12px;">
       </div>`;
   } else if (page === "admin") {
     if (currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -721,7 +743,7 @@ async function renderPage(page) {
       <!-- SCANNER & VALIDATION DE DISCOUNT / TAMPON -->
       <div class="scan-box">
         <h3>📷 Scanner le QR Code client (-20% & Tampon +1)</h3>
-        <p class="muted">Scannez le QR code pour valider le discount de 20% et ajouter un tampon Flamingo (le 6ème offre un café gratuit puis réinitialise la carte).</p>
+        <p class="muted">Scannez le QR code de la carte de fidélité pour valider le discount de 20%, ajouter un tampon Flamingo (le 6ème offre un café gratuit) et enregistrer l'action dans l'historique journalier.</p>
         
         <div id="reader" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
         <button class="outline full" id="startScanBtn" onclick="startCameraScan()" style="margin-bottom: 15px;">Démarrer la caméra</button>
@@ -940,7 +962,7 @@ async function loadVisitsHistory() {
   }).join("");
 }
 
-// SCANNER & VALIDATION DE TAMPON (+1) ET RESET À 6
+// SCANNER & VALIDATION DE TAMPON (+1) ET RESET À 6 + ENREGISTREMENT HISTORIQUE
 function startCameraScan() {
   const btn = $("startScanBtn");
   btn.textContent = "Caméra active...";
@@ -988,12 +1010,14 @@ async function searchAndValidateMember(token) {
     return;
   }
 
-  let currentStamps = card.stamps !== undefined ? card.stamps : (card.points || 0);
+  let currentStamps = card.stamps !== undefined ? card.stamps : 0;
   currentStamps += 1;
   let isGift = currentStamps >= 6;
 
+  // Enregistrement dans l'historique journalier (table visits)
   await supabaseClient.from('visits').insert({ user_id: card.user_id });
 
+  // Mise à jour des tampons (remise à 0 si 6 tampons atteints pour offrir le café)
   const newStampsCount = isGift ? 0 : currentStamps;
   await supabaseClient.from('loyalty_cards').update({ stamps: newStampsCount }).eq('id', card.id);
 
@@ -1005,7 +1029,7 @@ async function searchAndValidateMember(token) {
 
   loadVisitsHistory();
   supabaseClient.from('visits').select('*', { count: 'exact', head: true }).then(({ count }) => {
-    if ($('statVisits'))$('statVisits').textContent = count || 0;
+    if ($('statVisits')) $('statVisits').textContent = count || 0;
   });
 }
 
