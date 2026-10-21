@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#AD7966">
 <title>Flamingo Café-Restaurant | Club</title>
+
+<!-- SDK Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root {
@@ -400,13 +402,10 @@ label {
 }
 
 .qr-box {
-  width: 90px;
-  height: 90px;
-  display: grid;
-  place-items: center;
   background: white;
   color: var(--terracotta-dark);
   border-radius: 8px;
+  padding: 10px;
   text-align: center;
   font-size: 11px;
   font-weight: bold;
@@ -501,7 +500,6 @@ label {
 
 <!-- CONNEXION -->
 <section id="authScreen" class="auth-screen">
-
   <div class="brand">
     <img src="logo.png" alt="Flamingo Café-Restaurant">
     <h1>FLAMINGO CLUB</h1>
@@ -522,23 +520,18 @@ label {
     <form id="authForm">
       <div id="nameField" class="hidden">
         <label for="fullName">Nom complet</label>
-        <input class="field" id="fullName" autocomplete="name"
-               placeholder="Votre nom complet">
+        <input class="field" id="fullName" autocomplete="name" placeholder="Votre nom complet">
       </div>
 
       <label for="email">Adresse e-mail</label>
-      <input class="field" id="email" type="email"
-             autocomplete="email" placeholder="vous@exemple.com" required>
+      <input class="field" id="email" type="email" autocomplete="email" placeholder="vous@exemple.com" required>
 
       <label for="password">Mot de passe</label>
-      <input class="field" id="password" type="password"
-             minlength="6" autocomplete="current-password"
-             placeholder="6 caractères minimum" required>
+      <input class="field" id="password" type="password" minlength="6" autocomplete="current-password" placeholder="6 caractères minimum" required>
 
       <div id="confirmField" class="hidden">
         <label for="confirmPassword">Confirmer le mot de passe</label>
-        <input class="field" id="confirmPassword" type="password"
-               minlength="6" placeholder="Répétez le mot de passe">
+        <input class="field" id="confirmPassword" type="password" minlength="6" placeholder="Répétez le mot de passe">
       </div>
 
       <button class="primary full" id="authSubmit" type="submit">
@@ -547,16 +540,11 @@ label {
     </form>
 
     <div id="authMessage" class="message" role="status"></div>
-
-    <p class="muted" style="font-size:11px">
-      Version de démonstration : Supabase sera connecté dans la prochaine étape.
-    </p>
   </div>
 </section>
 
 <!-- APPLICATION -->
 <div id="appScreen" class="hidden">
-
   <header class="topbar">
     <div class="logo">
       <img src="logo.png" alt="Flamingo">
@@ -572,7 +560,6 @@ label {
   </header>
 
   <div class="layout">
-
     <nav class="sidebar" aria-label="Navigation">
       <button class="nav-btn active" data-page="home">🏠 Accueil</button>
       <button class="nav-btn" data-page="events">🎶 Soirées</button>
@@ -591,13 +578,21 @@ label {
 </div>
 
 <script>
+// Initialisation de Supabase
+const SUPABASE_URL = 'https://rwoirkuwvdgsgyxytfmu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_RXTtm3S7JyrmgEhe5aX85A_S5IGCheQ';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 let mode = "login";
 let currentUser = {
   name: "Membre Flamingo",
   email: "",
-  id: "DEMO-0001"
+  id: ""
 };
 let activePage = "home";
+let eventsList = [];
+let offersList = [];
+let loyaltyData = { points: 0, qr_token: "---" };
 
 const $ = id => document.getElementById(id);
 
@@ -614,63 +609,109 @@ function setMode(nextMode) {
   $("fullName").required = register;
   $("confirmPassword").required = register;
 
-  $("authTitle").textContent = register
-    ? "Rejoignez le club"
-    : "Bienvenue !";
-
-  $("authSubtitle").textContent = register
-    ? "Créez votre compte Flamingo Club."
-    : "Connectez-vous à votre espace Flamingo.";
-
-  $("authSubmit").textContent = register
-    ? "Créer mon compte"
-    : "Se connecter";
-
+  $("authTitle").textContent = register ? "Rejoignez le club" : "Bienvenue !";
+  $("authSubtitle").textContent = register ? "Créez votre compte Flamingo Club." : "Connectez-vous à votre espace Flamingo.";
+  $("authSubmit").textContent = register ? "Créer mon compte" : "Se connecter";
   $("authMessage").textContent = "";
 }
 
 $("loginTab").addEventListener("click", () => setMode("login"));
 $("registerTab").addEventListener("click", () => setMode("register"));
 
-$("authForm").addEventListener("submit", event => {
+$("authForm").addEventListener("submit", async event => {
   event.preventDefault();
-
   const email = $("email").value.trim();
   const password = $("password").value;
+  $("authMessage").textContent = "Chargement en cours...";
 
   if (mode === "register") {
-    if ($("fullName").value.trim().length < 2) {
+    const fullName = $("fullName").value.trim();
+    if (fullName.length < 2) {
       $("authMessage").textContent = "Entrez votre nom complet.";
       return;
     }
-
     if (password !== $("confirmPassword").value) {
-      $("authMessage").textContent =
-        "Les mots de passe ne correspondent pas.";
+      $("authMessage").textContent = "Les mots de passe ne correspondent pas.";
       return;
     }
 
-    $("authMessage").textContent =
-      "Le formulaire est prêt. La création réelle du compte sera activée avec Supabase.";
-    return;
-  }
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { full_name: fullName } }
+    });
 
-  $("authMessage").textContent =
-    "La connexion réelle sera activée avec Supabase. Utilisez la prévisualisation pour tester le design.";
+    if (error) {
+      $("authMessage").textContent = "Erreur : " + error.message;
+    } else {
+      $("authMessage").textContent = "Compte créé ! Veuillez vérifier vos e-mails pour confirmer votre inscription (si activé) ou connectez-vous.";
+    }
+  } else {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
 
-  if (!$("demoBtn")) {
-    const button = document.createElement("button");
-    button.id = "demoBtn";
-    button.type = "button";
-    button.className = "primary full";
-    button.textContent = "Prévisualiser l'application";
-    button.onclick = () => enterDemo(email);
-    $("authForm").after(button);
+    if (error) {
+      $("authMessage").textContent = "Erreur de connexion : " + error.message;
+    } else {
+      await loadUserDataAndEnterApp(data.user);
+    }
   }
 });
 
+async function loadUserDataAndEnterApp(user) {
+  currentUser.email = user.email;
+  currentUser.id = user.id;
+
+  // Récupérer le profil
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
+  if (profile) {
+    currentUser.name = profile.full_name || user.email.split("@")[0];
+  } else {
+    currentUser.name = user.email.split("@")[0];
+  }
+
+  // Récupérer la carte de fidélité
+  const { data: loyalty } = await supabase
+    .from('loyalty_cards')
+    .select('points, qr_token')
+    .eq('user_id', user.id)
+    .single();
+
+  if (loyalty) {
+    loyaltyData.points = loyalty.points;
+    loyaltyData.qr_token = loyalty.qr_token;
+  }
+
+  // Récupérer les événements et offres dynamiques
+  const { data: evs } = await supabase.from('events').select('*').eq('is_published', true);
+  if (evs) eventsList = evs;
+
+  const { data: offs } = await supabase.from('offers').select('*').eq('is_published', true);
+  if (offs) offersList = offs;
+
+  $("authScreen").classList.add("hidden");
+  $("appScreen").classList.remove("hidden");
+  $("topUser").textContent = currentUser.name.charAt(0).toUpperCase();
+
+  renderPage(activePage);
+}
+
+$("logoutBtn").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  $("appScreen").classList.add("hidden");
+  $("authScreen").classList.remove("hidden");
+  $("authMessage").textContent = "Vous avez été déconnecté.";
+});
+
 function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
+  return String(value || "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
@@ -679,95 +720,16 @@ function escapeHTML(value) {
   })[char]);
 }
 
-function enterDemo(email) {
-  currentUser.email = email || "membre@flamingo.example";
-  currentUser.name = email
-    ? email.split("@")[0]
-    : "Membre Flamingo";
-
-  $("authScreen").classList.add("hidden");
-  $("appScreen").classList.remove("hidden");
-  $("topUser").textContent =
-    currentUser.name.charAt(0).toUpperCase();
-
-  renderPage(activePage);
-}
-
-$("logoutBtn").addEventListener("click", () => {
-  $("appScreen").classList.add("hidden");
-  $("authScreen").classList.remove("hidden");
-  $("authMessage").textContent =
-    "Vous avez quitté la prévisualisation.";
-
-  const demo = $("demoBtn");
-  if (demo) demo.remove();
-});
-
-const events = [
-  {
-    icon: "🎶",
-    tag: "SOIRÉE MUSICALE",
-    title: "Live Music",
-    desc: "Une ambiance musicale pour vos moments Flamingo.",
-    style: "dark"
-  },
-  {
-    icon: "✨",
-    tag: "PROCHAINEMENT",
-    title: "Flamingo Night",
-    desc: "Retrouvez les détails de notre prochaine soirée.",
-    style: ""
-  },
-  {
-    icon: "🥂",
-    tag: "ÉVÉNEMENT PRIVÉ",
-    title: "Vos célébrations",
-    desc: "Partagez vos moments spéciaux chez Flamingo.",
-    style: "beige"
-  }
-];
-
-const offers = [
-  {
-    icon: "🍕",
-    tag: "GOURMANDISE",
-    title: "Nos spécialités",
-    desc: "Découvrez les spécialités de notre restaurant.",
-    style: "beige"
-  },
-  {
-    icon: "☕",
-    tag: "PAUSE CAFÉ",
-    title: "Café & boissons",
-    desc: "Une pause agréable dans votre café préféré.",
-    style: ""
-  },
-  {
-    icon: "🍽️",
-    tag: "À PARTAGER",
-    title: "Moments gourmands",
-    desc: "Des instants à savourer entre amis.",
-    style: "dark"
-  }
-];
-
 function card(item) {
   return `
     <article class="card">
-      <div class="card-art ${item.style}">${item.icon}</div>
+      <div class="card-art">✨</div>
       <div class="card-body">
-        <span class="tag">${item.tag}</span>
-        <h3>${item.title}</h3>
-        <p>${item.desc}</p>
-        <button class="card-link" type="button" onclick="showInfo()">
-          En savoir plus →
-        </button>
+        <span class="tag">FLAMINGO</span>
+        <h3>${escapeHTML(item.title)}</h3>
+        <p>${escapeHTML(item.description)}</p>
       </div>
     </article>`;
-}
-
-function showInfo() {
-  alert("Les informations seront gérées depuis le tableau Admin.");
 }
 
 function goPage(page) {
@@ -791,150 +753,75 @@ function renderPage(page) {
         <div>
           <small>BIENVENUE AU FLAMINGO CLUB</small>
           <h1>Votre moment,<br>votre plaisir.</h1>
-          <p>Bonjour ${escapeHTML(currentUser.name)} !
-          Découvrez nos soirées et vos offres Flamingo.</p>
-          <button class="primary" onclick="goPage('offers')">
-            Découvrir les offres
-          </button>
+          <p>Bonjour ${escapeHTML(currentUser.name)} ! Découvrez nos soirées et vos offres Flamingo.</p>
+          <button class="primary" onclick="goPage('offers')">Découvrir les offres</button>
         </div>
         <div class="hero-symbol">☕</div>
       </section>
 
       <div class="section-heading">
-        <div>
-          <h2>Les soirées</h2>
-          <p class="muted">Les bons moments commencent ici.</p>
-        </div>
+        <div><h2>Les soirées</h2><p class="muted">Les bons moments commencent ici.</p></div>
         <button class="outline" onclick="goPage('events')">Tout voir</button>
       </div>
-      <div class="cards">${events.slice(0,2).map(card).join("")}</div>
+      <div class="cards">${eventsList.slice(0,2).map(card).join("") || '<p class="muted">Aucune soirée pour le moment.</p>'}</div>
 
       <div class="section-heading">
-        <div>
-          <h2>Les offres</h2>
-          <p class="muted">Des plaisirs à partager.</p>
-        </div>
+        <div><h2>Les offres</h2><p class="muted">Des plaisirs à partager.</p></div>
         <button class="outline" onclick="goPage('offers')">Tout voir</button>
       </div>
-      <div class="cards">${offers.slice(0,2).map(card).join("")}</div>
-
-      <div class="notice">
-        Les événements et offres affichés sont des exemples.
-        Les informations officielles seront ajoutées par Flamingo.
-      </div>`;
-  }
-
-  else if (page === "events") {
+      <div class="cards">${offersList.slice(0,2).map(card).join("") || '<p class="muted">Aucune offre pour le moment.</p>'}</div>`;
+  } else if (page === "events") {
     main.innerHTML = `
-      <div class="section-heading">
-        <h2>Les soirées Flamingo</h2>
-      </div>
-      <div class="cards">${events.map(card).join("")}</div>
-      <div class="notice">
-        Les dates, horaires et artistes seront ajoutés par l'administrateur.
-      </div>`;
-  }
-
-  else if (page === "offers") {
+      <div class="section-heading"><h2>Les soirées Flamingo</h2></div>
+      <div class="cards">${eventsList.map(card).join("") || '<p class="muted">Aucune soirée publiée.</p>'}</div>`;
+  } else if (page === "offers") {
     main.innerHTML = `
-      <div class="section-heading">
-        <h2>Les offres Flamingo</h2>
-      </div>
-      <div class="cards">${offers.map(card).join("")}</div>
-      <div class="notice">
-        Les offres et les prix doivent être confirmés par le restaurant.
-      </div>`;
-  }
-
-  else if (page === "loyalty") {
+      <div class="section-heading"><h2>Les offres Flamingo</h2></div>
+      <div class="cards">${offersList.map(card).join("") || '<p class="muted">Aucune offre publiée.</p>'}</div>`;
+  } else if (page === "loyalty") {
     main.innerHTML = `
-      <div class="section-heading">
-        <h2>Ma carte de fidélité</h2>
-      </div>
-
+      <div class="section-heading"><h2>Ma carte de fidélité</h2></div>
       <div class="loyalty-card">
         <div class="loyalty-header">
           <div>
-            <div style="letter-spacing:2px;font-size:12px">
-              FLAMINGO CAFÉ-RESTAURANT
-            </div>
+            <div style="letter-spacing:2px;font-size:12px">FLAMINGO CAFÉ-RESTAURANT</div>
             <div style="margin-top:8px">CARTE MEMBRE</div>
           </div>
           <img class="loyalty-logo" src="logo.png" alt="Flamingo">
         </div>
-
         <h2>${escapeHTML(currentUser.name)}</h2>
-        <div class="member-id">MEMBRE · ${currentUser.id}</div>
-
+        <div class="member-id">MEMBRE · ${escapeHTML(currentUser.id)}</div>
         <div class="loyalty-bottom">
           <div>
             <div style="font-size:12px">MES POINTS</div>
-            <div class="points">0 pts</div>
+            <div class="points">${loyaltyData.points} pts</div>
           </div>
-          <div class="qr-box">QR CODE<br>À ACTIVER</div>
+          <div class="qr-box">Token ID:<br><span style="font-size:9px">${escapeHTML(loyaltyData.qr_token.slice(0,8))}...</span></div>
         </div>
-      </div>
-
-      <div class="notice">
-        Cette carte est une maquette. Le QR individuel et les points
-        seront activés avec Supabase et un système de validation sécurisé.
       </div>`;
-  }
-
-  else if (page === "games") {
+  } else if (page === "games") {
     main.innerHTML = `
-      <div class="section-heading">
-        <h2>Jeux & Tirage au sort</h2>
-      </div>
-
-      <div class="cards">
-        <article class="card">
-          <div class="card-art beige">🎡</div>
-          <div class="card-body">
-            <span class="tag">BIENTÔT</span>
-            <h3>Lucky Wheel</h3>
-            <p>Une roue de la chance et des récompenses.</p>
-            <button class="card-link" onclick="showInfo()">Bientôt disponible →</button>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="card-art">🎁</div>
-          <div class="card-body">
-            <span class="tag">CONCOURS</span>
-            <h3>Tirage au sort</h3>
-            <p>Découvrez les prochains jeux et leurs conditions.</p>
-            <button class="card-link" onclick="showInfo()">En savoir plus →</button>
-          </div>
-        </article>
-      </div>
-
-      <div class="notice">
-        Les règles, participations et résultats seront gérés de façon sécurisée.
-      </div>`;
-  }
-
-  else if (page === "profile") {
+      <div class="section-heading"><h2>Jeux & Tirage au sort</h2></div>
+      <div class="notice">Les jeux et concours seront bientôt activés.</div>`;
+  } else if (page === "profile") {
     main.innerHTML = `
-      <div class="section-heading">
-        <h2>Mon profil</h2>
-      </div>
-
+      <div class="section-heading"><h2>Mon profil</h2></div>
       <div class="profile-box">
         <div class="avatar">${escapeHTML(currentUser.name[0].toUpperCase())}</div>
-
         <label>Nom complet</label>
         <input class="field" value="${escapeHTML(currentUser.name)}" readonly>
-
         <label>Adresse e-mail</label>
         <input class="field" value="${escapeHTML(currentUser.email)}" readonly>
-
-        <div class="notice">
-          La gestion réelle du profil sera activée avec Supabase Auth.
-        </div>
       </div>`;
   }
 }
+
+// Vérifier si l'utilisateur est déjà connecté au chargement de la page
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    loadUserDataAndEnterApp(session.user);
+  }
+});
 
 setMode("login");
 </script>
